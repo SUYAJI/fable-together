@@ -529,7 +529,7 @@ export default function DashboardPage() {
                         <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                       </div>
                       <div className="text-3xl font-bold">
-                        <AnimatedCounter value={storiesCount} />
+                        {isDemoMode() ? storiesCount : <AnimatedCounter value={storiesCount} />}
                       </div>
                       <div className="text-sm text-muted-foreground">Stories in library</div>
                     </CardContent>
@@ -540,7 +540,7 @@ export default function DashboardPage() {
                         <Mic className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
                       </div>
                       <div className="text-2xl sm:text-3xl font-bold">
-                        <AnimatedCounter value={voicesCount} />
+                        {isDemoMode() ? voicesCount : <AnimatedCounter value={voicesCount} />}
                       </div>
                       <div className="text-xs sm:text-sm text-muted-foreground">Voices in library</div>
                     </CardContent>
@@ -551,7 +551,7 @@ export default function DashboardPage() {
                         <Star className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 dark:text-green-400" />
                       </div>
                       <div className="text-2xl sm:text-3xl font-bold">
-                        <AnimatedCounter value={creditsRemaining} />
+                        {isDemoMode() ? creditsRemaining : <AnimatedCounter value={creditsRemaining} />}
                       </div>
                       <div className="text-xs sm:text-sm text-muted-foreground">Credits available</div>
                     </CardContent>

@@ -964,7 +964,7 @@ export function CloneVoiceForm() {
   // Memoize computed values for performance
   const canProceedToStep2 = useMemo(() => voiceName.trim().length > 0, [voiceName])
   const canProceedToStep3 = useMemo(() => 
-    (selectedFile || recordedAudio || totalRecordingTime >= 60) && !isCreatingInstantVoice,
+    (isDemoMode() || selectedFile || recordedAudio || totalRecordingTime >= 60) && !isCreatingInstantVoice,
     [selectedFile, recordedAudio, totalRecordingTime, isCreatingInstantVoice]
   )
   const isStep3Complete = useMemo(() => clonedVoiceId !== null, [clonedVoiceId])

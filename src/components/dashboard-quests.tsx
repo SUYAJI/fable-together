@@ -15,6 +15,8 @@
 import { SimpleQuestCard } from "@/components/simple-quest-card"
 import { SIMPLE_QUESTS } from "@/lib/simple-quests"
 import { useState, useEffect } from "react"
+import { isDemoMode } from "@/lib/app-mode"
+import { getDemoState, subscribeDemoState } from "@/lib/services/demo/state"
 
 interface QuestStatus {
   id: string
@@ -40,6 +42,11 @@ export function DashboardQuests() {
   const [questStatuses, setQuestStatuses] = useState<QuestStatus[]>([])
 
   useEffect(() => {
+    if (isDemoMode()) {
+      const sync = () => setQuestStatuses(getDemoState().quests.map((quest) => ({ id: quest.id, completed: quest.status === "completed" })))
+      sync()
+      return subscribeDemoState(sync)
+    }
     const loadQuestStatuses = async () => {
       try {
         const response = await fetch("/api/quests/complete")
@@ -80,7 +87,13 @@ export function DashboardQuests() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {SIMPLE_QUESTS.map((quest) => {
+      {(isDemoMode()
+        ? SIMPLE_QUESTS.map((quest, index) => {
+            const action = ["story_opened", "narration_created", "demo_voice_created"][index]
+            return { ...quest, id: action, reward: getDemoState().quests.find((item) => item.id === action)?.credits_reward ?? quest.reward }
+          })
+        : SIMPLE_QUESTS
+      ).map((quest) => {
         const completed = getQuestStatus(quest.id)
         return (
           <SimpleQuestCard
