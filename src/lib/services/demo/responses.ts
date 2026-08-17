@@ -6,6 +6,7 @@ import {
   DEMO_STORY_SEARCH,
   DEMO_VOICES,
 } from "@/lib/services/demo/fixtures"
+import { demoVoiceRepository } from "@/lib/services/demo/voice-repository"
 
 export function getDemoSearchResults(query: string) {
   const normalized = query.trim().toLowerCase()
@@ -24,3 +25,5 @@ export const demoResponses = {
   notifications: { notifications: DEMO_NOTIFICATIONS, unreadCount: DEMO_NOTIFICATIONS.length },
   voices: { voices: DEMO_VOICES },
 }
+
+export { demoVoiceRepository }

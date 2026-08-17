@@ -6,6 +6,7 @@ import { Play, Pause, Loader2 } from "lucide-react"
 import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES, getLanguageData, getLanguageFlag } from "@/lib/language-codes"
 import { AudioWaveform } from "@/components/audio-waveform"
 import { cn } from "@/lib/utils"
+import { createBrowserNarration } from "@/lib/browser-narration"
 
 interface VoiceCardPreviewProps {
   voiceId: string
@@ -64,8 +65,10 @@ export function VoiceCardPreview({
       if (audio) {
         audio.pause()
         audio.currentTime = 0
-        setIsPlaying(false)
+      } else if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel()
       }
+      setIsPlaying(false)
       return
     }
 
@@ -102,6 +105,20 @@ export function VoiceCardPreview({
 
       if (!response.ok) {
         throw new Error("Failed to generate preview")
+      }
+
+      if (response.headers.get("content-type")?.includes("application/json")) {
+        const preview = await response.json()
+        if (preview.playback === "browser-speech") {
+          const utterance = createBrowserNarration(preview.text, 1)
+          if (!utterance) throw new Error("Browser narration is unavailable")
+          utterance.onend = () => setIsPlaying(false)
+          utterance.onerror = () => setIsPlaying(false)
+          window.speechSynthesis.cancel()
+          window.speechSynthesis.speak(utterance)
+          setIsPlaying(true)
+          return
+        }
       }
 
       const audioBlob = await response.blob()

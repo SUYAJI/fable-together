@@ -49,6 +49,8 @@ import { EnhancedAudioPlayer } from "@/components/enhanced-audio-player"
 import { getVoiceBorderGradient } from "@/lib/voice-colors"
 import { CheckCircle2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { StoryPlayerModal, type PlayerStory, type PlayerNarration } from "@/components/story-player-modal"
+import { createBrowserNarration, isBrowserNarrationAvailable } from "@/lib/browser-narration"
 
 /**
  * Voice interface for voice selection
@@ -99,6 +101,7 @@ interface StoryNarrationControlsProps {
   storyId: number
   storyText: string
   storyTitle: string
+  story: PlayerStory
 }
 
 // Component for individual saved audio variation
@@ -322,7 +325,8 @@ function SavedAudioVariation({
 export function StoryNarrationControls({ 
   storyId, 
   storyText, 
-  storyTitle 
+  storyTitle,
+  story,
 }: StoryNarrationControlsProps) {
   const [voices, setVoices] = useState<Voice[]>([])
   const [selectedVoiceId, setSelectedVoiceId] = useState<string>("")
@@ -341,6 +345,8 @@ export function StoryNarrationControls({
   const [activeVoiceCategory, setActiveVoiceCategory] = useState<VoiceCategory>("all")
   const [playingPreviewId, setPlayingPreviewId] = useState<string | null>(null)
   const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null)
+  const [narration, setNarration] = useState<PlayerNarration | null>(null)
+  const [isPlayerOpen, setIsPlayerOpen] = useState(false)
 
   // Fetch user's voices from their library (all voices, not just curated)
   useEffect(() => {
@@ -459,6 +465,7 @@ export function StoryNarrationControls({
 
     // If clicking the same voice, just stop
     if (playingPreviewId === voiceId) {
+      if (isBrowserNarrationAvailable()) window.speechSynthesis.cancel()
       setPlayingPreviewId(null)
       return
     }
@@ -487,6 +494,19 @@ export function StoryNarrationControls({
 
       if (!response.ok) {
         throw new Error("Failed to generate preview")
+      }
+
+      if (response.headers.get("content-type")?.includes("application/json")) {
+        const preview = await response.json()
+        if (preview.playback === "browser-speech") {
+          const utterance = createBrowserNarration(preview.text, 1)
+          if (!utterance) throw new Error("Browser narration is unavailable")
+          utterance.onend = () => setPlayingPreviewId(null)
+          utterance.onerror = () => setPlayingPreviewId(null)
+          window.speechSynthesis.cancel()
+          window.speechSynthesis.speak(utterance)
+          return
+        }
       }
 
       const audioBlob = await response.blob()
@@ -643,14 +663,17 @@ export function StoryNarrationControls({
       })
 
       const data = await response.json()
-      if (data.success && data.audioUrl) {
-        setAudioUrl(data.audioUrl)
+      if (data.success && data.narration) {
+        const result = data.narration as PlayerNarration
+        setNarration(result)
+        setAudioUrl(result.audioUrl || null)
         setIsPlaying(false)
         if (audioElement) {
           audioElement.pause()
           audioElement.src = ""
         }
         setAudioElement(null)
+        setIsPlayerOpen(true)
       } else {
         setError(data.error || "Failed to generate audio")
       }
@@ -786,6 +809,13 @@ export function StoryNarrationControls({
         </div>
       )}
 
+      <StoryPlayerModal
+        story={story}
+        narration={narration}
+        open={isPlayerOpen}
+        onOpenChange={setIsPlayerOpen}
+      />
+
       {/* Audio Player with Waveform - Always Visible */}
       <Card className="glass-card border border-border/50">
         <CardContent className="p-4 sm:p-6">
@@ -804,6 +834,14 @@ export function StoryNarrationControls({
                 onSave={handleSave}
                 isSaving={isSaving}
               />
+            ) : narration?.playback === "browser-speech" ? (
+              <div className="space-y-3 rounded-xl border border-dashed border-border/50 bg-muted/30 p-6 text-center">
+                <p className="text-sm font-medium">{narration.disclosure || "Browser narration preview"}</p>
+                <p className="text-sm text-muted-foreground">Ready with {narration.voiceName}. Playback uses your browser&apos;s available system voice.</p>
+                <Button onClick={() => setIsPlayerOpen(true)} variant="outline" aria-label="Open story player">
+                  Open Story Player
+                </Button>
+              </div>
             ) : (
               <div className="flex items-center justify-center py-12 bg-muted/30 rounded-xl border border-dashed border-border/50">
                 <div className="text-center space-y-2">
@@ -989,6 +1027,15 @@ export function StoryNarrationControls({
                       isSelected && "ring-2 ring-primary ring-offset-2"
                     )}
                     onClick={() => setSelectedVoiceId(voice.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault()
+                        setSelectedVoiceId(voice.id)
+                      }
+                    }}
+                    role="radio"
+                    aria-checked={isSelected}
+                    tabIndex={0}
                   >
                     <Card className="glass-card relative overflow-hidden rounded-xl border-0 h-full flex-1 flex flex-col">
                       <CardContent className="p-3 sm:p-4 flex flex-col h-full flex-1">

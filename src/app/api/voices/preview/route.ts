@@ -2,12 +2,26 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { ttsToMp3 } from "@/lib/elevenlabs";
 import { isDemoMode } from "@/lib/app-mode";
+import { demoVoiceRepository } from "@/lib/services/demo/voice-repository";
 
 export async function POST(request: Request) {
   if (isDemoMode()) {
+    const { voiceId, text, language = "en" } = await request.json();
+    const voice = await demoVoiceRepository.getById(voiceId);
+    if (!voice || !text) {
+      return NextResponse.json({ error: "A demo voice and preview text are required.", mode: "demo" }, { status: 400 });
+    }
     return NextResponse.json(
-      { error: "Demo voice audio is not bundled yet.", mode: "demo", code: "DEMO_AUDIO_PENDING" },
-      { status: 501 }
+      {
+        success: true,
+        mode: "demo",
+        playback: "browser-speech",
+        voiceId: voice.id,
+        voiceName: voice.name,
+        language,
+        text,
+        disclosure: "Browser narration preview",
+      },
     );
   }
 

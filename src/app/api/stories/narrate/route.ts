@@ -4,6 +4,7 @@ import { ttsToMp3, calculateTokenCost } from "@/lib/elevenlabs";
 import { getElevenLabsLanguageCode } from "@/lib/language-codes";
 import { TranslationService } from "@/lib/translation";
 import { isDemoMode } from "@/lib/app-mode";
+import { demoNarrationService } from "@/lib/services/demo/narration";
 
 // Hardcoded example stories (matching the frontend)
 const exampleStories = [
@@ -32,9 +33,22 @@ const exampleStories = [
 
 export async function POST(request: Request) {
   if (isDemoMode()) {
+    const { exampleStoryId, voiceId, language = "en", speed = 1.0, translatedText } = await request.json();
+    const narration = await demoNarrationService.requestNarration({
+      storyId: exampleStoryId,
+      voiceId,
+      language,
+      speed,
+      text: translatedText,
+    });
+
+    if (!narration) {
+      return NextResponse.json({ error: "Demo story or voice not found.", mode: "demo" }, { status: 404 });
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 350));
     return NextResponse.json(
-      { error: "Demo narration audio is not bundled yet.", mode: "demo", code: "DEMO_NARRATION_PENDING" },
-      { status: 501 }
+      { success: true, mode: "demo", narration, audioUrl: narration.audioUrl },
     );
   }
 

@@ -5,6 +5,8 @@ import { getAppMode, resolveAppMode } from "../src/lib/app-mode"
 import { demoClientServices } from "../src/lib/services/demo/client-services"
 import { DEMO_PROFILE, DEMO_USER } from "../src/lib/services/demo/fixtures"
 import { demoStoryRepository } from "../src/lib/services/demo/story-repository"
+import { DEMO_NARRATION_MANIFEST, demoNarrationService } from "../src/lib/services/demo/narration"
+import { demoVoiceRepository } from "../src/lib/services/demo/voice-repository"
 
 test("application mode defaults to demo when the mode flag and credentials are absent", () => {
   assert.equal(resolveAppMode({}), "demo")
@@ -52,5 +54,49 @@ test("Demo Mode requires no production-service environment variables", async () 
       if (value === undefined) delete process.env[name]
       else process.env[name] = value
     })
+  }
+})
+
+test("demo voice repository returns deterministic fictional voices", async () => {
+  const voices = await demoVoiceRepository.list()
+
+  assert.equal(voices.length, 6)
+  assert.deepEqual(
+    voices.map((voice) => voice.id),
+    ["demo-voice-warm", "demo-voice-gentle", "demo-voice-bright", "demo-voice-calm", "demo-voice-wise", "demo-voice-playful"],
+  )
+})
+
+test("missing bundled narration resolves to the browser narration fallback", async () => {
+  assert.deepEqual(DEMO_NARRATION_MANIFEST, [])
+
+  const narration = await demoNarrationService.requestNarration({
+    storyId: 1,
+    voiceId: "demo-voice-warm",
+    language: "en",
+    speed: 1,
+  })
+
+  assert.equal(narration?.playback, "browser-speech")
+  assert.equal(narration?.audioUrl, undefined)
+  assert.equal(narration?.voiceName, "Warm Storyteller")
+})
+
+test("demo narration needs no ElevenLabs environment variable", async () => {
+  const previous = process.env.ELEVENLABS_API_KEY
+  delete process.env.ELEVENLABS_API_KEY
+
+  try {
+    const narration = await demoNarrationService.requestNarration({
+      storyId: 2,
+      voiceId: "demo-voice-gentle",
+      language: "en",
+      speed: 1,
+    })
+    assert.equal(narration?.success, true)
+    assert.equal(narration?.playback, "browser-speech")
+  } finally {
+    if (previous === undefined) delete process.env.ELEVENLABS_API_KEY
+    else process.env.ELEVENLABS_API_KEY = previous
   }
 })

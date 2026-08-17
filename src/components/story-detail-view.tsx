@@ -139,6 +139,7 @@ export function StoryDetailView({ story, onBack }: StoryDetailViewProps) {
             storyId={story.id}
             storyText={story.body}
             storyTitle={story.title}
+            story={story}
           />
         </div>
       )}
