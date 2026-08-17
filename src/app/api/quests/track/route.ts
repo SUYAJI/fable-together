@@ -9,6 +9,7 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 import { NextResponse } from "next/server"
+import { isDemoMode } from "@/lib/app-mode"
 
 /**
  * Interface for quest update data
@@ -27,6 +28,16 @@ interface QuestUpdateData {
  * @returns NextResponse with quest status and credits awarded
  */
 export async function POST(request: Request) {
+  if (isDemoMode()) {
+    return NextResponse.json({
+      success: true,
+      quest: { status: "in_progress", progress: 1 },
+      creditsAwarded: 0,
+      persisted: false,
+      mode: "demo",
+    })
+  }
+
   try {
     const supabase = await createSupabaseServerClient()
     

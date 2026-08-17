@@ -14,6 +14,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { isDemoMode } from '@/lib/app-mode'
 
 /**
  * Middleware function that runs on every request
@@ -22,6 +23,14 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
  * @returns NextResponse with appropriate redirects or continuation
  */
 export async function middleware(request: NextRequest) {
+  if (isDemoMode()) {
+    const productionAuthRoutes = ["/sign-in", "/auth"]
+    if (productionAuthRoutes.some((route) => request.nextUrl.pathname.startsWith(route))) {
+      return NextResponse.redirect(new URL("/dashboard", request.url))
+    }
+    return NextResponse.next()
+  }
+
   // Public routes that don't require authentication
   const publicRoutes = [
     '/',

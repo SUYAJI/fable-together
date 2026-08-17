@@ -24,7 +24,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { SearchAutocomplete } from "@/components/search-autocomplete"
 import { CreditsDisplay } from "@/components/credits-display"
 import { NotificationsDropdown } from "@/components/notifications-dropdown"
-import { createSupabaseBrowserClient } from "@/lib/supabase-browser"
+import { getClientServices } from "@/lib/services/client"
 
 interface UserProfile {
   id: string
@@ -75,16 +75,11 @@ export function AppHeader({ user: propUser }: AppHeaderProps) {
 
     const fetchUser = async () => {
       try {
-        const supabase = createSupabaseBrowserClient()
-        const { data: { user: authUser } } = await supabase.auth.getUser()
+        const services = getClientServices()
+        const authUser = await services.auth.getCurrentUser()
         
         if (authUser) {
-          // Fetch user profile
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("id, display_name, avatar_url")
-            .eq("id", authUser.id)
-            .single()
+          const profile = await services.profiles.getProfile(authUser.id)
 
           if (profile) {
             setUser({

@@ -16,6 +16,8 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getVoices } from "@/lib/elevenlabs";
+import { isDemoMode } from "@/lib/app-mode";
+import { demoResponses } from "@/lib/services/demo/responses";
 
 /**
  * Cache for voices to improve performance
@@ -38,6 +40,10 @@ export function clearVoicesCache() {
  * @returns NextResponse with voices array containing preset and cloned voices
  */
 export async function GET() {
+  if (isDemoMode()) {
+    return NextResponse.json(demoResponses.voices);
+  }
+
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

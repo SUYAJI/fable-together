@@ -2,8 +2,18 @@ import { NextResponse } from "next/server"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 import { SIMPLE_QUESTS, getQuestById } from "@/lib/simple-quests"
 import { completeQuestServerSide } from "@/lib/quest-completion"
+import { isDemoMode } from "@/lib/app-mode"
 
 export async function POST(request: Request) {
+  if (isDemoMode()) {
+    return NextResponse.json({
+      success: true,
+      creditsAwarded: 0,
+      persisted: false,
+      mode: "demo",
+    })
+  }
+
   try {
     const supabase = await createSupabaseServerClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -57,6 +67,10 @@ export async function POST(request: Request) {
 
 // GET endpoint to check quest completion status
 export async function GET(request: Request) {
+  if (isDemoMode()) {
+    return NextResponse.json({ quests: [], persisted: false, mode: "demo" })
+  }
+
   try {
     const supabase = await createSupabaseServerClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()

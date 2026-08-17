@@ -22,6 +22,7 @@ import { NavigationProgress } from "@/components/navigation-progress"
 import { PageWrapper } from "@/components/page-wrapper"
 import { Toaster } from "@/components/ui/toaster"
 import { SuppressConsoleErrors } from "@/components/suppress-console-errors"
+import { isDemoMode } from "@/lib/app-mode"
 import "../styles/globals.css";
 
 /**
@@ -144,6 +145,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const demoMode = isDemoMode()
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -206,7 +209,9 @@ export default function RootLayout({
           <NavigationProgress />
           <Toaster />
           <SuppressConsoleErrors />
-          <Analytics mode={process.env.NODE_ENV === 'production' ? 'production' : 'development'} />
+          {!demoMode && (
+            <Analytics mode={process.env.NODE_ENV === 'production' ? 'production' : 'development'} />
+          )}
         </ThemeProvider>
       </body>
     </html>

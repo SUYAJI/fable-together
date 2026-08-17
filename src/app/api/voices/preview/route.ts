@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { ttsToMp3 } from "@/lib/elevenlabs";
+import { isDemoMode } from "@/lib/app-mode";
 
 export async function POST(request: Request) {
+  if (isDemoMode()) {
+    return NextResponse.json(
+      { error: "Demo voice audio is not bundled yet.", mode: "demo", code: "DEMO_AUDIO_PENDING" },
+      { status: 501 }
+    );
+  }
+
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

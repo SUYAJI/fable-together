@@ -9,6 +9,8 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 import { NextResponse } from "next/server"
+import { isDemoMode } from "@/lib/app-mode"
+import { demoResponses } from "@/lib/services/demo/responses"
 
 /**
  * Interface for quest data returned by the API
@@ -41,6 +43,10 @@ interface UserQuestData {
  * @returns NextResponse with quests array containing merged quest definitions and user progress
  */
 export async function GET() {
+  if (isDemoMode()) {
+    return NextResponse.json(demoResponses.quests)
+  }
+
   try {
     const supabase = await createSupabaseServerClient()
     

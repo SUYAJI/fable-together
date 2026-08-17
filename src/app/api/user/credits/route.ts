@@ -9,6 +9,8 @@
 
 import { NextResponse } from "next/server"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
+import { isDemoMode } from "@/lib/app-mode"
+import { demoResponses } from "@/lib/services/demo/responses"
 
 /**
  * Get user's credit balance and transaction history
@@ -16,6 +18,10 @@ import { createSupabaseServerClient } from "@/lib/supabase-server"
  * @returns NextResponse with total credits, available credits, and transaction history
  */
 export async function GET() {
+  if (isDemoMode()) {
+    return NextResponse.json(demoResponses.credits)
+  }
+
   try {
     // Validate environment variables
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {

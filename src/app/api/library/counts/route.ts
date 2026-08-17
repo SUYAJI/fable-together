@@ -11,6 +11,8 @@ import { NextResponse } from "next/server"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 import { getVoices } from "@/lib/elevenlabs"
 import { filterCuratedVoices } from "@/lib/voice-filters"
+import { isDemoMode } from "@/lib/app-mode"
+import { demoResponses } from "@/lib/services/demo/responses"
 
 /**
  * Interface for ElevenLabs voice data
@@ -32,6 +34,10 @@ interface ElevenLabsVoice {
  * @returns NextResponse with story and voice counts
  */
 export async function GET() {
+  if (isDemoMode()) {
+    return NextResponse.json(demoResponses.libraryCounts)
+  }
+
   try {
     const supabase = await createSupabaseServerClient()
     const { data: { user } } = await supabase.auth.getUser()

@@ -11,6 +11,8 @@ import { createSupabaseServerClient } from "@/lib/supabase-server"
 import { NextResponse } from "next/server"
 import { getVoices } from "@/lib/elevenlabs"
 import { filterCuratedVoices } from "@/lib/voice-filters"
+import { isDemoMode } from "@/lib/app-mode"
+import { getDemoSearchResults } from "@/lib/services/demo/responses"
 
 /**
  * Interface for voice search result
@@ -44,6 +46,10 @@ export async function GET(request: Request) {
 
     if (!query || query.trim().length < 1) {
       return NextResponse.json({ stories: [], voices: [] })
+    }
+
+    if (isDemoMode()) {
+      return NextResponse.json(getDemoSearchResults(query))
     }
 
     const supabase = await createSupabaseServerClient()

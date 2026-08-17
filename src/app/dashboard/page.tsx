@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Play, Heart, Share2, Users, Target, TrendingUp, Clock, Trophy, CheckCircle2, Mic, BookOpen, Headphones, Star, ShoppingCart, Sparkles, ChevronRight } from "lucide-react"
-import { createSupabaseBrowserClient } from "@/lib/supabase-browser"
+import { getClientServices } from "@/lib/services/client"
 import { DashboardContentWrapper } from "@/components/dashboard-content-wrapper"
 import { DashboardNavigationProgress } from "@/components/dashboard-navigation-progress"
 import { NewsTicker } from "@/components/news-ticker"
@@ -290,24 +290,17 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function fetchUserData() {
-      const supabase = createSupabaseBrowserClient()
-      
       try {
-        // Get current user
-        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+        const services = getClientServices()
+        const authUser = await services.auth.getCurrentUser()
         
-        if (authError || !authUser) {
+        if (!authUser) {
           // No authenticated user
           setLoading(false)
           return
         }
 
-        // Get user profile
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, display_name, avatar_url, available_credits')
-          .eq('id', authUser.id)
-          .single()
+        const profile = await services.profiles.getProfile(authUser.id)
 
         // Get display name with proper fallback: profile.display_name -> first_name -> first + last -> email username -> "User"
         const getDisplayName = () => {
@@ -340,9 +333,7 @@ export default function DashboardPage() {
         const displayName = getDisplayName()
         const firstName = getFirstName()
         
-        if (profileError) {
-          console.error('Error fetching profile:', profileError)
-          // Fallback to auth user data
+        if (!profile) {
           setUser({
             id: authUser.id,
             display_name: displayName,

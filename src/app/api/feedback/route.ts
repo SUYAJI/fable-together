@@ -1,7 +1,18 @@
 import { NextResponse } from "next/server"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
+import { isDemoMode } from "@/lib/app-mode"
 
 export async function POST(request: Request) {
+  if (isDemoMode()) {
+    return NextResponse.json({
+      success: true,
+      message: "Demo feedback was acknowledged but not transmitted or stored.",
+      creditsAwarded: 0,
+      persisted: false,
+      mode: "demo",
+    })
+  }
+
   try {
     const body = await request.json()
     const { name, email, feedback } = body

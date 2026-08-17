@@ -12,6 +12,8 @@ import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { useState, useEffect, useRef } from "react"
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser"
+import { getClientServices } from "@/lib/services/client"
+import { isDemoMode } from "@/lib/app-mode"
 import { User, Camera, Edit2, Save, X, Mail, Calendar, MapPin, Globe, BookOpen, Mic, Trophy, TrendingUp } from "lucide-react"
 import { AnimatedCounter } from "@/components/animated-counter"
 
@@ -67,24 +69,17 @@ export default function ProfilePage() {
 
   useEffect(() => {
     async function fetchUserData() {
-      const supabase = createSupabaseBrowserClient()
-      
       try {
-        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+        const services = getClientServices()
+        const authUser = await services.auth.getCurrentUser()
         
-        if (authError || !authUser) {
+        if (!authUser) {
           // No authenticated user - silent fail for better UX
           setLoading(false)
           return
         }
 
-        // Fetch profile
-        // Note: email is stored in auth.users, not in profiles table
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, display_name, avatar_url, bio, location, website, phone, created_at, available_credits, total_credits')
-          .eq('id', authUser.id)
-          .single()
+        const profile = await services.profiles.getProfile(authUser.id)
 
         // Get display name with proper fallback
         const getDisplayName = () => {
@@ -96,10 +91,6 @@ export default function ProfilePage() {
             return `${authUser.user_metadata.first_name} ${authUser.user_metadata.last_name}`
           }
           return authUser.email?.split('@')[0] || 'User'
-        }
-
-        if (profileError && profileError.code !== 'PGRST116') {
-          console.error('Error fetching profile:', profileError)
         }
 
         const displayName = getDisplayName()
@@ -232,6 +223,15 @@ export default function ProfilePage() {
 
     const file = fileInputRef.current.files[0]
     setUploading(true)
+
+    if (isDemoMode()) {
+      setAvatarUrl(avatarPreview)
+      setAvatarPreview(null)
+      setUploading(false)
+      toast({ title: "Demo profile image saved locally" })
+      return
+    }
+
     const supabase = createSupabaseBrowserClient()
 
     try {
@@ -295,6 +295,34 @@ export default function ProfilePage() {
     if (!user) return
     
     setSaving(true)
+
+    if (isDemoMode()) {
+      try {
+        const updated = await getClientServices().profiles.updateProfile(user.id, {
+          display_name: displayName,
+          bio: bio || null,
+          avatar_url: avatarPreview || avatarUrl || null,
+          location: location || null,
+          website: website || null,
+          phone: phone || null,
+        })
+        setUser({ ...user, ...updated, email: user.email })
+        setAvatarUrl(updated.avatar_url || null)
+        setAvatarPreview(null)
+        setIsEditing(false)
+        toast({ title: "Demo profile saved", description: "Changes are stored only in this browser." })
+      } catch (error) {
+        toast({
+          title: "Unable to save demo profile",
+          description: error instanceof Error ? error.message : "Unknown error",
+          variant: "destructive",
+        })
+      } finally {
+        setSaving(false)
+      }
+      return
+    }
+
     const supabase = createSupabaseBrowserClient()
     
     try {

@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { ttsToMp3, calculateTokenCost } from "@/lib/elevenlabs";
 import { getElevenLabsLanguageCode } from "@/lib/language-codes";
 import { TranslationService } from "@/lib/translation";
+import { isDemoMode } from "@/lib/app-mode";
 
 // Hardcoded example stories (matching the frontend)
 const exampleStories = [
@@ -30,6 +31,13 @@ const exampleStories = [
 ];
 
 export async function POST(request: Request) {
+  if (isDemoMode()) {
+    return NextResponse.json(
+      { error: "Demo narration audio is not bundled yet.", mode: "demo", code: "DEMO_NARRATION_PENDING" },
+      { status: 501 }
+    );
+  }
+
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();

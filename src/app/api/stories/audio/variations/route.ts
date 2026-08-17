@@ -10,6 +10,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getLanguageName } from "@/lib/language-codes";
+import { isDemoMode } from "@/lib/app-mode";
 
 /**
  * Interface for audio variation from database
@@ -33,6 +34,15 @@ interface AudioVariation {
  * @returns NextResponse with variations array
  */
 export async function GET(request: Request) {
+  if (isDemoMode()) {
+    return NextResponse.json({
+      success: true,
+      variations: [],
+      persisted: false,
+      mode: "demo",
+    });
+  }
+
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

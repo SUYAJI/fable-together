@@ -22,7 +22,8 @@ import { BookOpen, Mic, ArrowRight, Menu, X } from "lucide-react"
 import Link from "next/link"
 import { AuthToggleForm } from "@/components/auth/auth-toggle-form"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { createSupabaseBrowserClient } from "@/lib/supabase-browser"
+import { getClientServices } from "@/lib/services/client"
+import { isDemoMode } from "@/lib/app-mode"
 import { HomePageStructuredData } from "./page-metadata"
 
 /**
@@ -57,8 +58,12 @@ export default function HomePage() {
   // Check if user is authenticated and redirect to dashboard
   useEffect(() => {
     async function checkAuth() {
-      const supabase = createSupabaseBrowserClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      if (isDemoMode()) {
+        setIsCheckingAuth(false)
+        return
+      }
+
+      const user = await getClientServices().auth.getCurrentUser()
       
       if (user) {
         // User is authenticated, redirect to dashboard
@@ -189,6 +194,14 @@ export default function HomePage() {
             <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
               Transform your family&apos;s voices into enchanting narrators. Create personalized stories that bring your loved ones&apos; voices to life with AI-powered storytelling. Generate personalized stories with your family&apos;s voices using advanced AI. Record family members to create unique voice narrators that sound just like them. Listen to your stories anytime, anywhere with your family and friends.
             </p>
+            {isDemoMode() && (
+              <Button asChild size="lg" className="mt-6 gap-2">
+                <Link href="/dashboard">
+                  Explore Demo
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </Button>
+            )}
           </section>
 
           {/* Auth Section - Register/Sign In Toggle */}

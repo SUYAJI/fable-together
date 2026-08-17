@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { TranslationService } from "@/lib/translation";
+import { isDemoMode } from "@/lib/app-mode";
 
 /**
  * POST /api/translate
@@ -15,6 +16,18 @@ export async function POST(request: Request) {
         { error: "text and targetLanguage are required" },
         { status: 400 }
       );
+    }
+
+    if (isDemoMode()) {
+      return NextResponse.json({
+        success: true,
+        translatedText: text,
+        sourceLanguage,
+        targetLanguage,
+        provider: "demo-original-text",
+        translated: false,
+        mode: "demo",
+      });
     }
 
     // If target language is same as source, return original text

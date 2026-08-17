@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
+import { isDemoMode } from "@/lib/app-mode"
 
 export async function POST(request: Request) {
+  if (isDemoMode()) {
+    return NextResponse.json({ success: true, persisted: false, mode: "demo" })
+  }
+
   try {
     const supabase = await createSupabaseServerClient()
     

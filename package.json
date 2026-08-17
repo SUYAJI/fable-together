@@ -7,6 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
+    "test:demo": "tsx --test tests/demo-mode.test.ts",
     "seed-translations": "tsx scripts/seed-story-translations.ts",
     "pre-generate-audio": "tsx scripts/pre-generate-story-audio.ts"
   },

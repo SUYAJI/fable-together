@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { cloneVoice } from "@/lib/elevenlabs";
 import { completeQuestServerSide } from "@/lib/quest-completion";
+import { isDemoMode } from "@/lib/app-mode";
 
 /**
  * API Route: Create an Instant Voice Clone using ElevenLabs API
@@ -21,6 +22,18 @@ import { completeQuestServerSide } from "@/lib/quest-completion";
  * Documentation: https://elevenlabs.io/docs/api-reference/voices/ivc/create
  */
 export async function POST(request: Request) {
+  if (isDemoMode()) {
+    return NextResponse.json(
+      {
+        error: "Voice cloning is not performed in Demo Mode.",
+        mode: "demo",
+        simulated: false,
+        code: "DEMO_CLONING_PENDING",
+      },
+      { status: 501 }
+    );
+  }
+
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();

@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
+import { isDemoMode } from "@/lib/app-mode"
 
 export async function POST(request: Request) {
+  if (isDemoMode()) {
+    return NextResponse.json({
+      success: true,
+      message: "Demo invitation was not sent.",
+      persisted: false,
+      mode: "demo",
+    })
+  }
+
   try {
     const body = await request.json()
     const { email } = body

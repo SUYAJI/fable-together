@@ -15,6 +15,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser"
+import { getClientServices } from "@/lib/services/client"
+import { isDemoMode } from "@/lib/app-mode"
 import { useTheme } from "next-themes"
 import { Loader2, Bell, Shield, Globe, Palette, Mail, Trash2, AlertTriangle, Lock, Eye, EyeOff } from "lucide-react"
 import {
@@ -92,22 +94,16 @@ export default function SettingsPage() {
 
   useEffect(() => {
     async function fetchUserData() {
-      const supabase = createSupabaseBrowserClient()
-      
       try {
-        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+        const services = getClientServices()
+        const authUser = await services.auth.getCurrentUser()
         
-        if (authError || !authUser) {
+        if (!authUser) {
           setLoading(false)
           return
         }
 
-        // Fetch profile
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, display_name, avatar_url')
-          .eq('id', authUser.id)
-          .single()
+        const profile = await services.profiles.getProfile(authUser.id)
 
         // Check if user has a password set
         // Users with password have encrypted_password in auth.users
@@ -186,6 +182,24 @@ export default function SettingsPage() {
     if (!user) return
     
     setSaving(true)
+
+    if (isDemoMode()) {
+      try {
+        await getClientServices().profiles.updateProfile(user.id, { display_name: displayName })
+        setUser({ ...user, display_name: displayName })
+        toast({ title: "Demo profile saved", description: "Changes are stored only in this browser." })
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to update demo profile",
+          variant: "destructive",
+        })
+      } finally {
+        setSaving(false)
+      }
+      return
+    }
+
     const supabase = createSupabaseBrowserClient()
     
     try {
@@ -529,7 +543,7 @@ export default function SettingsPage() {
                             setPasswordSaving(false)
                           }
                         }}
-                        disabled={passwordSaving}
+                        disabled={passwordSaving || isDemoMode()}
                       >
                         {passwordSaving ? (
                           <>
@@ -545,6 +559,7 @@ export default function SettingsPage() {
                       </Button>
                       <Button
                         variant="outline"
+                        disabled={isDemoMode()}
                         onClick={() => {
                           router.push("/auth/reset-password")
                         }}
@@ -553,7 +568,9 @@ export default function SettingsPage() {
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Having trouble? You can always use the magic link sign-in method or reset your password via email.
+                      {isDemoMode()
+                        ? "Password management is disabled because Demo Mode does not use an account."
+                        : "Having trouble? You can always use the magic link sign-in method or reset your password via email."}
                     </p>
                   </CardContent>
                 </Card>
