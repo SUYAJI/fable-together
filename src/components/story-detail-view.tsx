@@ -22,6 +22,9 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ArrowLeft, Star } from "lucide-react"
 import { StoryNarrationControls } from "@/components/story-narration-controls"
 import Image from "next/image"
+import { useEffect } from "react"
+import { isDemoMode } from "@/lib/app-mode"
+import { recordDemoAction } from "@/lib/services/demo/state"
 
 interface Creator {
   id: string
@@ -50,6 +53,9 @@ interface StoryDetailViewProps {
 }
 
 export function StoryDetailView({ story, onBack }: StoryDetailViewProps) {
+  useEffect(() => {
+    if (isDemoMode() && story.isExample) recordDemoAction("story_opened")
+  }, [story.id, story.isExample])
   // Use original English text for display
   const displayedTitle = story.title
 

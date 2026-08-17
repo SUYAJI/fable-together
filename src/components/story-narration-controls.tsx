@@ -51,6 +51,8 @@ import { CheckCircle2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { StoryPlayerModal, type PlayerStory, type PlayerNarration } from "@/components/story-player-modal"
 import { createBrowserNarration, isBrowserNarrationAvailable } from "@/lib/browser-narration"
+import { isDemoMode } from "@/lib/app-mode"
+import { getDemoState, getDemoVoices, recordDemoAction, setDemoPreferredVoice } from "@/lib/services/demo/state"
 
 /**
  * Voice interface for voice selection
@@ -353,6 +355,12 @@ export function StoryNarrationControls({
     const fetchVoices = async () => {
       try {
         setIsLoadingVoices(true)
+        if (isDemoMode()) {
+          const libraryVoices = getDemoVoices()
+          setVoices(libraryVoices)
+          setSelectedVoiceId(getDemoState().preferredVoiceId)
+          return
+        }
         const response = await fetch("/api/voices")
         if (!response.ok) {
           throw new Error("Failed to fetch voices")
@@ -481,6 +489,16 @@ export function StoryNarrationControls({
         'hi': `नमस्ते, यह ${voiceName} का पूर्वावलोकन है`,
       }
       const previewText = previewTexts[selectedLanguage] || previewTexts['en']
+      if (isDemoMode()) {
+        const utterance = createBrowserNarration(previewText, 1)
+        if (!utterance) throw new Error("Browser narration is unavailable")
+        utterance.onend = () => setPlayingPreviewId(null)
+        utterance.onerror = () => setPlayingPreviewId(null)
+        window.speechSynthesis.cancel()
+        window.speechSynthesis.speak(utterance)
+        recordDemoAction("voice_previewed")
+        return
+      }
       
       const response = await fetch("/api/voices/preview", {
         method: "POST",
@@ -663,6 +681,7 @@ export function StoryNarrationControls({
       })
 
       const data = await response.json()
+      if (isDemoMode()) recordDemoAction("narration_created")
       if (data.success && data.narration) {
         const result = data.narration as PlayerNarration
         setNarration(result)
@@ -1026,11 +1045,12 @@ export function StoryNarrationControls({
                       `bg-gradient-to-r ${borderGradient}`,
                       isSelected && "ring-2 ring-primary ring-offset-2"
                     )}
-                    onClick={() => setSelectedVoiceId(voice.id)}
+                    onClick={() => { setSelectedVoiceId(voice.id); if (isDemoMode()) setDemoPreferredVoice(voice.id) }}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault()
                         setSelectedVoiceId(voice.id)
+                        if (isDemoMode()) setDemoPreferredVoice(voice.id)
                       }
                     }}
                     role="radio"

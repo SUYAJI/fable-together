@@ -1,18 +1,6 @@
 import type { AppProfile, AppServices, ProfileUpdate } from "@/lib/services/contracts"
-import { DEMO_PROFILE, DEMO_USER } from "@/lib/services/demo/fixtures"
-
-const PROFILE_STORAGE_KEY = "fable-demo-profile"
-
-function readStoredProfile(): AppProfile {
-  if (typeof window === "undefined") return DEMO_PROFILE
-
-  try {
-    const stored = window.localStorage.getItem(PROFILE_STORAGE_KEY)
-    return stored ? { ...DEMO_PROFILE, ...JSON.parse(stored) } : DEMO_PROFILE
-  } catch {
-    return DEMO_PROFILE
-  }
-}
+import { DEMO_USER } from "@/lib/services/demo/fixtures"
+import { getDemoState, updateDemoProfile } from "@/lib/services/demo/state"
 
 export const demoClientServices: AppServices = {
   auth: {
@@ -25,13 +13,12 @@ export const demoClientServices: AppServices = {
   },
   profiles: {
     async getProfile(userId) {
-      return userId === DEMO_USER.id ? readStoredProfile() : null
+      return userId === DEMO_USER.id ? getDemoState().profile : null
     },
     async updateProfile(userId: string, update: ProfileUpdate) {
       if (userId !== DEMO_USER.id) throw new Error("Unknown demo profile")
-      const profile = { ...readStoredProfile(), ...update } as AppProfile
-      window.localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile))
-      return profile
+      const normalized = Object.fromEntries(Object.entries(update).filter(([, value]) => value !== null)) as Partial<AppProfile>
+      return updateDemoProfile(normalized).profile as AppProfile
     },
   },
 }

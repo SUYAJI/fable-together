@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast"
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser"
 import { getClientServices } from "@/lib/services/client"
 import { isDemoMode } from "@/lib/app-mode"
+import { resetDemoState } from "@/lib/services/demo/state"
 import { useTheme } from "next-themes"
 import { Loader2, Bell, Shield, Globe, Palette, Mail, Trash2, AlertTriangle, Lock, Eye, EyeOff } from "lucide-react"
 import {
@@ -277,6 +278,12 @@ export default function SettingsPage() {
   }
 
   const handleDeleteAccount = async () => {
+    if (isDemoMode()) {
+      resetDemoState()
+      setDisplayName("Fable Explorer")
+      toast({ title: "Demo state reset", description: "Local profile changes, progress, credits, and Demo Voice metadata were reset." })
+      return
+    }
     // This would typically call an API endpoint to delete the account
     toast({
       title: "Account deletion requested",
@@ -577,29 +584,28 @@ export default function SettingsPage() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-destructive">Danger Zone</CardTitle>
-                    <CardDescription>Irreversible and destructive actions</CardDescription>
+                    <CardTitle className="text-destructive">{isDemoMode() ? "Reset Demo State" : "Danger Zone"}</CardTitle>
+                    <CardDescription>{isDemoMode() ? "Restore the deterministic local demo baseline on this browser." : "Irreversible and destructive actions"}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="destructive">
                           <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Account
+                          {isDemoMode() ? "Reset Demo State" : "Delete Account"}
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogTitle>{isDemoMode() ? "Reset this local demo?" : "Are you absolutely sure?"}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete your account
-                            and remove all your data from our servers.
+                            {isDemoMode() ? "This removes local demo preferences, quest progress, credits, and Demo Voice metadata. No production account or data is affected." : "This action cannot be undone. This will permanently delete your account and remove all your data from our servers."}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                           <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                            Delete Account
+                            {isDemoMode() ? "Reset Demo" : "Delete Account"}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>

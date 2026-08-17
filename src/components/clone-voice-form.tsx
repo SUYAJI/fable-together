@@ -17,6 +17,8 @@ import { EnhancedAudioPlayer } from "@/components/enhanced-audio-player"
 import { SUPPORTED_LANGUAGES, getLanguageData, getLanguageFlag, ELEVENLABS_LANGUAGE_MAP } from "@/lib/language-codes"
 import { getVoiceBorderGradient } from "@/lib/voice-colors"
 import { cn } from "@/lib/utils"
+import { isDemoMode } from "@/lib/app-mode"
+import { createDemoVoice } from "@/lib/services/demo/state"
 
 // Example text script for reading (approximately 60 seconds at normal pace)
 const EXAMPLE_SCRIPT = "Welcome to the voice cloning recording session. This script is designed to take approximately sixty seconds to read at a normal speaking pace. Please read this text clearly and naturally, maintaining a consistent tone and volume throughout. As you read, imagine you're speaking to a friend or family member. Take your time, and don't rush. The goal is to capture the natural rhythm and cadence of your voice. Make sure you're in a quiet environment with minimal background noise. Speak at your normal volume, neither too loud nor too quiet. Enunciate your words clearly, but speak naturally. This recording will help create a high-quality digital copy of your voice that can be used to narrate stories and bring your family's voices to life. Continue reading until you've finished this entire passage. Thank you for taking the time to create your voice clone. This process is important for ensuring the best possible results."
@@ -48,6 +50,7 @@ interface SavedProgress {
 export function CloneVoiceForm() {
   // Load saved progress from localStorage on mount
   const loadSavedProgress = (): Partial<SavedProgress> | null => {
+    if (isDemoMode()) return null
     if (typeof window === "undefined") return null
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
@@ -330,6 +333,21 @@ export function CloneVoiceForm() {
 
   // Create Instant Voice clone
   const handleCreateInstantVoice = async () => {
+    if (isDemoMode()) {
+      setIsCreatingInstantVoice(true)
+      setProcessingProgress(0)
+      window.setTimeout(() => setProcessingProgress(55), 250)
+      window.setTimeout(() => {
+        const voice = createDemoVoice()
+        setInstantVoiceId(voice.id)
+        setClonedVoiceId(voice.id)
+        setProcessingProgress(100)
+        setCurrentStep(4)
+        setIsCreatingInstantVoice(false)
+        toast({ title: "Demo Voice ready", description: "This is a local simulation. Browser speech is used for narration; no audio was uploaded or saved." })
+      }, 650)
+      return
+    }
     const fileToUse = selectedFile || (savedRecordings.length > 0 ? await combineRecordings() : null)
     
     if (!fileToUse) {
@@ -821,6 +839,7 @@ export function CloneVoiceForm() {
 
   // Save progress to localStorage - memoized with useCallback
   const saveProgress = useCallback(() => {
+    if (isDemoMode()) return
     if (typeof window === "undefined") return
     
     try {
@@ -953,6 +972,12 @@ export function CloneVoiceForm() {
 
   return (
     <div className="w-full space-y-8 sm:space-y-12">
+      {isDemoMode() && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>Demo simulation only: recording and uploaded audio stay in this browser session and are never uploaded or saved. Creating Demo Voice stores only its local metadata and uses browser speech for narration.</AlertDescription>
+        </Alert>
+      )}
       {/* Progress Indicator */}
       <div className="space-y-4">
         <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">

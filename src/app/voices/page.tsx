@@ -40,6 +40,8 @@ import { getVoiceBorderGradient } from "@/lib/voice-colors"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { isDemoMode } from "@/lib/app-mode"
+import { getDemoVoices, recordDemoAction, subscribeDemoState } from "@/lib/services/demo/state"
 
 /**
  * Voice interface matching database schema
@@ -116,6 +118,11 @@ export default function VoicesPage() {
       try {
         setLoading(true)
         setError(null)
+        if (isDemoMode()) {
+          setVoices(getDemoVoices())
+          recordDemoAction("voice_library_explored")
+          return
+        }
         const response = await fetch("/api/voices")
         
         if (!response.ok) {
@@ -166,6 +173,7 @@ export default function VoicesPage() {
     }
 
     fetchVoices()
+    if (isDemoMode()) return subscribeDemoState(() => setVoices(getDemoVoices()))
   }, [])
 
   const handleDeleteVoice = async (voiceId: string) => {

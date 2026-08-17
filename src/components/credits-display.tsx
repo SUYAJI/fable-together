@@ -8,6 +8,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { isDemoMode } from "@/lib/app-mode"
+import { getDemoState, subscribeDemoState } from "@/lib/services/demo/state"
 
 interface CreditsBalance {
   total: number
@@ -24,6 +26,11 @@ export const CreditsDisplay = memo(function CreditsDisplay() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (isDemoMode()) {
+      const sync = () => { const demo = getDemoState().credits; setCredits(demo); setLoading(false) }
+      sync()
+      return subscribeDemoState(sync)
+    }
     const fetchCredits = async () => {
       try {
         // Add timeout to prevent hanging requests
@@ -79,6 +86,10 @@ export const CreditsDisplay = memo(function CreditsDisplay() {
 
   // Refresh function that can be called externally
   const refreshCredits = useCallback(async () => {
+    if (isDemoMode()) {
+      setCredits(getDemoState().credits)
+      return
+    }
     try {
       // Add timeout to prevent hanging requests
       const controller = new AbortController()
@@ -156,7 +167,7 @@ export const CreditsDisplay = memo(function CreditsDisplay() {
           <div>
             <h4 className="text-sm font-semibold mb-1">Credits</h4>
             <p className="text-xs text-muted-foreground">
-              Credits are used to generate stories and clone voices
+              {isDemoMode() ? "Local demo credits increase as you complete demo actions." : "Credits are used to generate stories and clone voices"}
             </p>
           </div>
           

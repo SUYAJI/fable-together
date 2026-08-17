@@ -7,6 +7,12 @@ import { DEMO_PROFILE, DEMO_USER } from "../src/lib/services/demo/fixtures"
 import { demoStoryRepository } from "../src/lib/services/demo/story-repository"
 import { DEMO_NARRATION_MANIFEST, demoNarrationService } from "../src/lib/services/demo/narration"
 import { demoVoiceRepository } from "../src/lib/services/demo/voice-repository"
+import { DEMO_STATE_KEY, createDemoVoice, getDemoState, recordDemoAction, resetDemoState } from "../src/lib/services/demo/state"
+
+function memoryStorage() {
+  const values = new Map<string, string>()
+  return { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value) }, removeItem: (key: string) => { values.delete(key) } }
+}
 
 test("application mode defaults to demo when the mode flag and credentials are absent", () => {
   assert.equal(resolveAppMode({}), "demo")
@@ -99,4 +105,38 @@ test("demo narration needs no ElevenLabs environment variable", async () => {
     if (previous === undefined) delete process.env.ELEVENLABS_API_KEY
     else process.env.ELEVENLABS_API_KEY = previous
   }
+})
+
+test("demo state starts deterministic and awards a quest only once", () => {
+  const initial = resetDemoState()
+  assert.equal(initial.credits.available, 150)
+  assert.equal(initial.quests.find((quest) => quest.id === "story_opened")?.status, "not_started")
+  recordDemoAction("story_opened")
+  const completed = getDemoState()
+  assert.equal(completed.credits.available, 160)
+  assert.equal(completed.quests.find((quest) => quest.id === "story_opened")?.status, "completed")
+  recordDemoAction("story_opened")
+  assert.equal(getDemoState().credits.available, 160)
+})
+
+test("preferred voice and Demo Voice metadata persist across repository reads and reset safely", () => {
+  const storage = memoryStorage()
+  resetDemoState(storage)
+  const state = getDemoState(storage)
+  storage.setItem(DEMO_STATE_KEY, JSON.stringify({ ...state, preferredVoiceId: "demo-voice-gentle" }))
+  assert.equal(getDemoState(storage).preferredVoiceId, "demo-voice-gentle")
+  // The schema deliberately retains no recording or upload values.
+  assert.equal("recordedAudio" in getDemoState(storage), false)
+  assert.equal("selectedFileUrl" in getDemoState(storage), false)
+  resetDemoState(storage)
+  assert.equal(getDemoState(storage).preferredVoiceId, "demo-voice-warm")
+  assert.equal(getDemoState(storage).createdVoice, null)
+
+  resetDemoState()
+  const created = createDemoVoice()
+  assert.equal(created.name, "Demo Voice")
+  assert.equal(getDemoState().createdVoice?.provider, "browser-speech")
+  assert.equal("recordedAudio" in created, false)
+  resetDemoState()
+  assert.equal(getDemoState().createdVoice, null)
 })

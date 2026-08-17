@@ -39,6 +39,8 @@ import { refreshCreditsDisplay } from "@/components/credits-display"
 import { AnimatedCounter } from "@/components/animated-counter"
 import { PlaceholderModal } from "@/components/placeholder-modal"
 import { FeedbackModal } from "@/components/feedback-modal"
+import { isDemoMode } from "@/lib/app-mode"
+import { getDemoState, getDemoVoices, subscribeDemoState } from "@/lib/services/demo/state"
 
 interface UserProfile {
   id: string
@@ -289,6 +291,21 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
+    if (isDemoMode()) {
+      const syncDemoDashboard = () => {
+        const demo = getDemoState()
+        const firstName = demo.profile.display_name.split(" ")[0] || "Fable"
+        setUser({ id: demo.profile.id, display_name: demo.profile.display_name, avatar_url: demo.profile.avatar_url, first_name: firstName })
+        setCreditsRemaining(demo.credits.available)
+        setStoriesCount(3)
+        setVoicesCount(getDemoVoices().length)
+        setOnboardingQuests(demo.quests)
+        setQuestsLoading(false)
+        setLoading(false)
+      }
+      syncDemoDashboard()
+      return subscribeDemoState(syncDemoDashboard)
+    }
     async function fetchUserData() {
       try {
         const services = getClientServices()
@@ -404,6 +421,7 @@ export default function DashboardPage() {
 
   // Fetch the Explore Platform quest
   useEffect(() => {
+    if (isDemoMode()) return
     const fetchQuest = async () => {
       try {
         setQuestsLoading(true)
