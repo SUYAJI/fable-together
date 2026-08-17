@@ -1,0 +1,95 @@
+/**
+ * Dashboard Quests Component
+ * 
+ * Displays quest cards on the dashboard homepage.
+ * Fetches quest completion status from API with localStorage fallback.
+ * 
+ * Features:
+ * - Auto-refreshes quest status every 10 seconds
+ * - Falls back to localStorage for offline/unauthenticated users
+ * - Responsive grid layout (1 column mobile, 3 columns desktop)
+ */
+
+"use client"
+
+import { SimpleQuestCard } from "@/components/simple-quest-card"
+import { SIMPLE_QUESTS } from "@/lib/simple-quests"
+import { useState, useEffect } from "react"
+
+interface QuestStatus {
+  id: string
+  completed: boolean
+}
+
+/**
+ * Interface for API quest response
+ */
+interface ApiQuestStatus {
+  id: string
+  completed: boolean
+  completedAt?: string | null
+  tokensAwarded?: number
+}
+
+/**
+ * Dashboard quests component
+ * 
+ * Displays all available quests with their completion status
+ */
+export function DashboardQuests() {
+  const [questStatuses, setQuestStatuses] = useState<QuestStatus[]>([])
+
+  useEffect(() => {
+    const loadQuestStatuses = async () => {
+      try {
+        const response = await fetch("/api/quests/complete")
+        if (response.ok) {
+          const data = await response.json()
+          if (data.quests) {
+            setQuestStatuses(data.quests.map((q: ApiQuestStatus) => ({
+              id: q.id,
+              completed: q.completed,
+            })))
+            return
+          }
+        }
+      } catch (error) {
+        // Silently fail
+      }
+
+      // Fallback to localStorage
+      if (typeof window !== "undefined") {
+        const statuses: QuestStatus[] = SIMPLE_QUESTS.map(quest => ({
+          id: quest.id,
+          completed: localStorage.getItem(`quest-${quest.id}-completed`) === "true",
+        }))
+        setQuestStatuses(statuses)
+      }
+    }
+
+    loadQuestStatuses()
+
+    // Refresh periodically
+    const interval = setInterval(loadQuestStatuses, 10000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const getQuestStatus = (questId: string): boolean => {
+    return questStatuses.find(s => s.id === questId)?.completed || false
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {SIMPLE_QUESTS.map((quest) => {
+        const completed = getQuestStatus(quest.id)
+        return (
+          <SimpleQuestCard
+            key={quest.id}
+            quest={quest}
+            completed={completed}
+          />
+        )
+      })}
+    </div>
+  )
+}
