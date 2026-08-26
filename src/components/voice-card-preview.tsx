@@ -7,6 +7,8 @@ import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES, getLanguageData, getLanguageFlag }
 import { AudioWaveform } from "@/components/audio-waveform"
 import { cn } from "@/lib/utils"
 import { createBrowserNarration } from "@/lib/browser-narration"
+import { isDemoMode } from "@/lib/app-mode"
+import { recordDemoAction } from "@/lib/services/demo/state"
 
 interface VoiceCardPreviewProps {
   voiceId: string
@@ -91,6 +93,17 @@ export function VoiceCardPreview({
     // Generate new preview
     setIsLoading(true)
     try {
+      if (isDemoMode()) {
+        const utterance = createBrowserNarration(getPreviewText(selectedLanguage, voiceName), 1, voiceId, selectedLanguage)
+        if (!utterance) throw new Error("Browser narration is unavailable")
+        utterance.onend = () => setIsPlaying(false)
+        utterance.onerror = () => setIsPlaying(false)
+        window.speechSynthesis.cancel()
+        window.speechSynthesis.speak(utterance)
+        setIsPlaying(true)
+        recordDemoAction("voice_previewed")
+        return
+      }
       const response = await fetch("/api/voices/preview", {
         method: "POST",
         headers: {

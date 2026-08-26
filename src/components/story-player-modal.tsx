@@ -30,6 +30,8 @@ export interface PlayerNarration {
   text: string
   voiceName: string
   speed: number
+  voiceId?: string
+  language?: string
   disclosure?: string
 }
 
@@ -78,7 +80,7 @@ export function StoryPlayerModal({ story, narration, open, onOpenChange }: Story
       return
     }
 
-    const utterance = createBrowserNarration(narration.text, narration.speed)
+    const utterance = createBrowserNarration(narration.text, narration.speed, narration.voiceId, narration.language)
     if (!utterance) return
     utterance.onend = () => {
       setIsBrowserPlaying(false)
@@ -106,6 +108,7 @@ export function StoryPlayerModal({ story, narration, open, onOpenChange }: Story
 
   const isAudioNarration = narration?.playback === "audio" && Boolean(narration.audioUrl)
   const browserUnavailable = narration?.playback === "browser-speech" && !isBrowserNarrationAvailable()
+  const playerText = narration?.text || story.body
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -151,11 +154,11 @@ export function StoryPlayerModal({ story, narration, open, onOpenChange }: Story
             )}
           </section>
 
-          {story.body && (
+          {playerText && (
             <section className="space-y-3">
               <h3 className="text-lg font-semibold">Story Text</h3>
               <div ref={textRef} className="max-h-64 overflow-y-auto rounded-lg bg-muted/30 p-4 text-base leading-relaxed" aria-label="Story text">
-                {story.body.split(" ").map((word, index) => (
+                {playerText.split(" ").map((word, index) => (
                   <span key={`${word}-${index}`} className={`word inline-block mr-1 transition-colors ${index === highlightedWord ? "bg-yellow-200 dark:bg-yellow-800 font-semibold rounded px-1" : ""}`}>{word}</span>
                 ))}
               </div>

@@ -16,6 +16,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { ttsToMp3, calculateTokenCost } from "@/lib/elevenlabs";
 import { createClient } from "@supabase/supabase-js";
+import { demoModeDisabledResponse } from "@/lib/demo-api-response";
 
 /**
  * Hardcoded example stories data
@@ -61,6 +62,8 @@ const EXAMPLE_STORIES = [
  * @returns NextResponse with audio URL or error
  */
 export async function POST(request: Request) {
+  const demoResponse = demoModeDisabledResponse("Production story generation")
+  if (demoResponse) return demoResponse
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();

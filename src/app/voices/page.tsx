@@ -41,7 +41,7 @@ import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { isDemoMode } from "@/lib/app-mode"
-import { getDemoVoices, recordDemoAction, subscribeDemoState } from "@/lib/services/demo/state"
+import { deleteDemoVoice, getDemoVoices, recordDemoAction, subscribeDemoState } from "@/lib/services/demo/state"
 
 /**
  * Voice interface matching database schema
@@ -182,6 +182,13 @@ export default function VoicesPage() {
     }
 
     setDeletingVoiceId(voiceId)
+    if (isDemoMode()) {
+      deleteDemoVoice()
+      setVoices(getDemoVoices())
+      setDeletingVoiceId(null)
+      toast({ title: "Demo Voice deleted", description: "The local simulated voice was removed and the preferred voice was restored if needed." })
+      return
+    }
     
     // Optimistically remove from UI immediately
     const previousVoices = voices
@@ -323,6 +330,7 @@ export default function VoicesPage() {
                   return (
                     <div
                       key={voice.id}
+                      id={`voice-${voice.id}`}
                       className={cn(
                         "relative rounded-2xl transition-all hover:shadow-lg flex flex-col p-[1px]",
                         `bg-gradient-to-r ${borderGradient}`

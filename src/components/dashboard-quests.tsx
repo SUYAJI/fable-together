@@ -14,6 +14,7 @@
 
 import { SimpleQuestCard } from "@/components/simple-quest-card"
 import { SIMPLE_QUESTS } from "@/lib/simple-quests"
+import { DEMO_QUEST_CARDS } from "@/lib/demo-quest-cards"
 import { useState, useEffect } from "react"
 import { isDemoMode } from "@/lib/app-mode"
 import { getDemoState, subscribeDemoState } from "@/lib/services/demo/state"
@@ -87,13 +88,7 @@ export function DashboardQuests() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {(isDemoMode()
-        ? SIMPLE_QUESTS.map((quest, index) => {
-            const action = ["story_opened", "narration_created", "demo_voice_created"][index]
-            return { ...quest, id: action, reward: getDemoState().quests.find((item) => item.id === action)?.credits_reward ?? quest.reward }
-          })
-        : SIMPLE_QUESTS
-      ).map((quest) => {
+      {(isDemoMode() ? DEMO_QUEST_CARDS : SIMPLE_QUESTS).map((quest) => {
         const completed = getQuestStatus(quest.id)
         return (
           <SimpleQuestCard

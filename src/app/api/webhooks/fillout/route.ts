@@ -16,6 +16,7 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { demoModeDisabledResponse } from "@/lib/demo-api-response";
 
 /**
  * Interface for Fillout question data
@@ -57,6 +58,8 @@ interface UserMetadata {
  * @returns NextResponse with success/error status
  */
 export async function POST(request: Request) {
+  const demoResponse = demoModeDisabledResponse("Production registration webhooks")
+  if (demoResponse) return demoResponse
   try {
     // Webhook received - minimal logging for production
     

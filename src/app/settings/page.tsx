@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast"
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser"
 import { getClientServices } from "@/lib/services/client"
 import { isDemoMode } from "@/lib/app-mode"
-import { resetDemoState } from "@/lib/services/demo/state"
+import { getDemoState, resetDemoState, setDemoStoryLanguage } from "@/lib/services/demo/state"
 import { useTheme } from "next-themes"
 import { Loader2, Bell, Shield, Globe, Palette, Mail, Trash2, AlertTriangle, Lock, Eye, EyeOff } from "lucide-react"
 import {
@@ -160,9 +160,10 @@ export default function SettingsPage() {
           }
         }
 
-        const savedLanguage = localStorage.getItem('language')
-        if (savedLanguage) {
-          setLanguage(savedLanguage)
+        if (isDemoMode()) setLanguage(getDemoState().preferences.storyLanguage)
+        else {
+          const savedLanguage = localStorage.getItem('language')
+          if (savedLanguage) setLanguage(savedLanguage)
         }
       } catch (error) {
         console.error('Error fetching user data:', error)
@@ -255,7 +256,8 @@ export default function SettingsPage() {
     if (setThemeProvider) {
       setThemeProvider(theme)
     }
-    localStorage.setItem('language', language)
+    if (isDemoMode()) setDemoStoryLanguage(language)
+    else localStorage.setItem('language', language)
     
     // Apply language to document for accessibility
     if (typeof document !== 'undefined') {
@@ -281,6 +283,7 @@ export default function SettingsPage() {
     if (isDemoMode()) {
       resetDemoState()
       setDisplayName("Fable Explorer")
+      setLanguage("en")
       toast({ title: "Demo state reset", description: "Local profile changes, progress, credits, and Demo Voice metadata were reset." })
       return
     }

@@ -14,6 +14,7 @@ import { useState, useEffect, useRef } from "react"
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser"
 import { getClientServices } from "@/lib/services/client"
 import { isDemoMode } from "@/lib/app-mode"
+import { getDemoCounts, getDemoState, subscribeDemoState } from "@/lib/services/demo/state"
 import { User, Camera, Edit2, Save, X, Mail, Calendar, MapPin, Globe, BookOpen, Mic, Trophy, TrendingUp } from "lucide-react"
 import { AnimatedCounter } from "@/components/animated-counter"
 
@@ -68,6 +69,42 @@ export default function ProfilePage() {
   const { toast } = useToast()
 
   useEffect(() => {
+    if (isDemoMode()) {
+      const syncDemoProfile = () => {
+        const state = getDemoState()
+        const counts = getDemoCounts()
+        const profileData: UserProfile = {
+          ...state.profile,
+          avatar_url: state.profile.avatar_url || undefined,
+          email: "demo@fabletogether.com",
+          available_credits: state.credits.available,
+          total_credits: state.credits.total,
+        }
+        setUser(profileData)
+        setDisplayName(state.profile.display_name || "Fable Explorer")
+        setBio(state.profile.bio || "")
+        setLocation(state.profile.location || "")
+        setWebsite(state.profile.website || "")
+        setPhone(state.profile.phone || "")
+        setAvatarUrl(state.profile.avatar_url || null)
+        setStats({
+          storiesCount: counts.stories,
+          voicesCount: counts.voices,
+          questsCount: state.quests.length,
+          totalPlays: 0,
+        })
+        setCreditTransactions([
+          { amount: 150, source: "Demo balance", date: state.profile.created_at || "2025-12-08T12:00:00.000Z" },
+          ...state.quests
+            .filter((quest) => quest.status === "completed")
+            .map((quest) => ({ amount: quest.credits_reward, source: quest.title, date: quest.completed_at || state.profile.created_at || "2025-12-08T12:00:00.000Z" })),
+        ])
+        setLoading(false)
+      }
+      syncDemoProfile()
+      return subscribeDemoState(syncDemoProfile)
+    }
+
     async function fetchUserData() {
       try {
         const services = getClientServices()
@@ -306,7 +343,14 @@ export default function ProfilePage() {
           website: website || null,
           phone: phone || null,
         })
-        setUser({ ...user, ...updated, email: user.email })
+        const demoState = getDemoState()
+        setUser({
+          ...user,
+          ...updated,
+          email: user.email,
+          available_credits: demoState.credits.available,
+          total_credits: demoState.credits.total,
+        })
         setAvatarUrl(updated.avatar_url || null)
         setAvatarPreview(null)
         setIsEditing(false)

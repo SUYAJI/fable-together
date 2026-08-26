@@ -4,9 +4,12 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { AppHeader } from "@/components/app-header"
 import { SimpleQuestCard } from "@/components/simple-quest-card"
 import { SIMPLE_QUESTS } from "@/lib/simple-quests"
+import { DEMO_QUEST_CARDS } from "@/lib/demo-quest-cards"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { isDemoMode } from "@/lib/app-mode"
+import { getDemoState, subscribeDemoState } from "@/lib/services/demo/state"
 
 interface QuestStatus {
   id: string
@@ -23,6 +26,20 @@ export default function QuestsPage() {
 
   // Load quest statuses
   useEffect(() => {
+    if (isDemoMode()) {
+      const sync = () => {
+        setQuestStatuses(getDemoState().quests.map((quest) => ({
+          id: quest.id,
+          completed: quest.status === "completed",
+          completedAt: quest.completed_at,
+          tokensAwarded: quest.status === "completed" ? quest.credits_reward : 0,
+        })))
+        setInitialLoading(false)
+      }
+      sync()
+      return subscribeDemoState(sync)
+    }
+
     const loadQuestStatuses = async (isInitialLoad: boolean = false) => {
       try {
         // Only show loading state on initial load
@@ -95,6 +112,7 @@ export default function QuestsPage() {
 
   const totalCompleted = questStatuses.filter(s => s.completed).length
   const totalTokens = questStatuses.reduce((sum, s) => sum + s.tokensAwarded, 0)
+  const visibleQuests = isDemoMode() ? DEMO_QUEST_CARDS : SIMPLE_QUESTS
 
   return (
     <div className="flex h-screen">
@@ -116,7 +134,7 @@ export default function QuestsPage() {
               </p>
               {totalCompleted > 0 && (
                 <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
-                  <span>{totalCompleted} of {SIMPLE_QUESTS.length} quests completed</span>
+                  <span>{totalCompleted} of {visibleQuests.length} quests completed</span>
                   {totalTokens > 0 && (
                     <span>• {totalTokens} tokens earned</span>
                   )}
@@ -131,7 +149,7 @@ export default function QuestsPage() {
               </div>
             ) : (
               <div className="space-y-6 sm:space-y-8">
-                {SIMPLE_QUESTS.map((quest) => {
+                {visibleQuests.map((quest) => {
                   const status = getQuestStatus(quest.id)
                   const completed = status?.completed || false
 

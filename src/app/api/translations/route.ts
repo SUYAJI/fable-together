@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { demoModeDisabledResponse } from "@/lib/demo-api-response";
 
 /**
  * GET /api/translations?storyId={id}&language={code}
  * Fetch translation for a story in a specific language
  */
 export async function GET(request: Request) {
+  const demoResponse = demoModeDisabledResponse("Production translation storage")
+  if (demoResponse) return demoResponse
   try {
     const { searchParams } = new URL(request.url);
     const storyId = searchParams.get("storyId");
@@ -78,6 +81,8 @@ export async function GET(request: Request) {
  * Body: { storyId, language, title, body, translatorId? }
  */
 export async function POST(request: Request) {
+  const demoResponse = demoModeDisabledResponse("Production translation storage")
+  if (demoResponse) return demoResponse
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();

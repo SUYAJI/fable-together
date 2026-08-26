@@ -52,7 +52,8 @@ import { cn } from "@/lib/utils"
 import { StoryPlayerModal, type PlayerStory, type PlayerNarration } from "@/components/story-player-modal"
 import { createBrowserNarration, isBrowserNarrationAvailable } from "@/lib/browser-narration"
 import { isDemoMode } from "@/lib/app-mode"
-import { getDemoState, getDemoVoices, recordDemoAction, setDemoPreferredVoice } from "@/lib/services/demo/state"
+import { getDemoState, getDemoVoices, recordDemoAction, setDemoPreferredVoice, setDemoStoryLanguage } from "@/lib/services/demo/state"
+import { getDemoStoryTranslation } from "@/lib/services/demo/story-repository"
 
 /**
  * Voice interface for voice selection
@@ -359,6 +360,7 @@ export function StoryNarrationControls({
           const libraryVoices = getDemoVoices()
           setVoices(libraryVoices)
           setSelectedVoiceId(getDemoState().preferredVoiceId)
+          setSelectedLanguage(getDemoState().preferences.storyLanguage)
           return
         }
         const response = await fetch("/api/voices")
@@ -490,7 +492,7 @@ export function StoryNarrationControls({
       }
       const previewText = previewTexts[selectedLanguage] || previewTexts['en']
       if (isDemoMode()) {
-        const utterance = createBrowserNarration(previewText, 1)
+        const utterance = createBrowserNarration(previewText, 1, voiceId, selectedLanguage)
         if (!utterance) throw new Error("Browser narration is unavailable")
         utterance.onend = () => setPlayingPreviewId(null)
         utterance.onerror = () => setPlayingPreviewId(null)
@@ -564,6 +566,10 @@ export function StoryNarrationControls({
   }, [selectedLanguage])
 
   const fetchSavedAudios = useCallback(async () => {
+    if (isDemoMode()) {
+      setSavedAudios([])
+      return
+    }
     try {
       const response = await fetch(`/api/stories/audio/variations?storyId=${storyId}`)
       if (response.ok) {
@@ -612,6 +618,14 @@ export function StoryNarrationControls({
   // Translate text when language changes
   useEffect(() => {
     const translateText = async () => {
+      if (isDemoMode()) {
+        setDemoStoryLanguage(selectedLanguage)
+        setTranslatedText(getDemoStoryTranslation(storyId, selectedLanguage) || storyText)
+        setIsTranslating(false)
+        setError(null)
+        return
+      }
+
       // If English, use original text
       if (selectedLanguage === "en") {
         setTranslatedText(storyText)
@@ -651,7 +665,7 @@ export function StoryNarrationControls({
     }
 
     translateText()
-  }, [selectedLanguage, storyText])
+  }, [selectedLanguage, storyId, storyText])
 
   const handleNarrate = async () => {
     if (!selectedVoiceId) {
@@ -668,6 +682,26 @@ export function StoryNarrationControls({
     setIsGenerating(true)
     setError(null)
     try {
+      if (isDemoMode()) {
+        const selectedVoice = voices.find((voice) => voice.id === selectedVoiceId)
+        if (!selectedVoice) throw new Error("The selected demo voice is unavailable")
+        const result: PlayerNarration = {
+          playback: "browser-speech",
+          text: translatedText,
+          voiceName: selectedVoice.name,
+          voiceId: selectedVoice.id,
+          language: selectedLanguage,
+          speed: speed[0],
+          disclosure: "Local browser speech preview — no audio or recording is sent or retained.",
+        }
+        setNarration(result)
+        setAudioUrl(null)
+        setIsPlaying(false)
+        setIsPlayerOpen(true)
+        recordDemoAction("narration_created")
+        return
+      }
+
       const response = await fetch("/api/stories/narrate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -681,7 +715,6 @@ export function StoryNarrationControls({
       })
 
       const data = await response.json()
-      if (isDemoMode()) recordDemoAction("narration_created")
       if (data.success && data.narration) {
         const result = data.narration as PlayerNarration
         setNarration(result)

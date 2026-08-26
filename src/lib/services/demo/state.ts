@@ -19,7 +19,7 @@ export interface DemoQuest {
 
 export interface DemoVoiceMetadata {
   id: "demo-voice-created"
-  name: "Demo Voice"
+  name: string
   description: string
   category: "Demo"
   accent: "Neutral"
@@ -41,14 +41,14 @@ export interface DemoState {
   quests: DemoQuest[]
   createdVoice: DemoVoiceMetadata | null
   notificationReadIds: string[]
-  preferences: { sidebarCollapsed: boolean }
+  preferences: { sidebarCollapsed: boolean; storyLanguage: string }
 }
 
 type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">
 let memoryState: DemoState | null = null
 
 const questDefinitions: Omit<DemoQuest, "progress" | "status" | "completed_at">[] = [
-  { id: "story_opened", title: "Open a sample story", description: "Explore a story from the demo library.", credits_reward: 10, progress_max: 1 },
+  { id: "story_opened", title: "Open sample story", description: "Explore a story from the demo library.", credits_reward: 10, progress_max: 1 },
   { id: "voice_previewed", title: "Preview a voice", description: "Listen to a browser speech preview.", credits_reward: 10, progress_max: 1 },
   { id: "narration_created", title: "Create narration", description: "Start a deterministic browser narration.", credits_reward: 20, progress_max: 1 },
   { id: "demo_voice_created", title: "Create Demo Voice", description: "Complete the local voice-clone simulation.", credits_reward: 20, progress_max: 1 },
@@ -63,7 +63,7 @@ function defaults(): DemoState {
     quests: questDefinitions.map((quest) => ({ ...quest, progress: 0, status: "not_started", completed_at: null })),
     createdVoice: null,
     notificationReadIds: [],
-    preferences: { sidebarCollapsed: false },
+    preferences: { sidebarCollapsed: false, storyLanguage: "en" },
   }
 }
 
@@ -85,7 +85,15 @@ export function getDemoState(storage: StorageLike | null = browserStorage()): De
     const saved = storage.getItem(DEMO_STATE_KEY)
     if (saved) {
       const parsed: unknown = JSON.parse(saved)
-      if (valid(parsed)) return parsed
+      if (valid(parsed)) {
+        const baseline = defaults()
+        return {
+          ...baseline,
+          ...parsed,
+          profile: { ...baseline.profile, ...parsed.profile },
+          preferences: { ...baseline.preferences, ...parsed.preferences },
+        }
+      }
     }
   } catch { /* fall back to deterministic defaults */ }
   const state = defaults()
@@ -128,11 +136,34 @@ export function recordDemoAction(action: DemoAction) {
   return saveDemoState({ ...state, quests, credits })
 }
 
-export function createDemoVoice() {
+export function createDemoVoice(customization?: { name?: string; description?: string; tags?: string[] }) {
   const state = getDemoState()
-  const createdVoice: DemoVoiceMetadata = state.createdVoice ?? { id: "demo-voice-created", name: "Demo Voice", description: "Simulated voice profile. Narration uses your browser's speech engine; no recorded audio is retained.", category: "Demo", accent: "Neutral", age: "Adult", gender: "Unspecified", use_case: "Storytelling", is_preset: false, is_cloned: true, provider: "browser-speech", created_at: new Date().toISOString(), tags: ["Demo", "Browser speech"] }
+  const createdVoice: DemoVoiceMetadata = {
+    id: "demo-voice-created",
+    name: customization?.name?.trim() || state.createdVoice?.name || "Demo Voice",
+    description: customization?.description?.trim() || state.createdVoice?.description || "Simulated voice profile. Narration uses your browser's speech engine; no recorded audio is retained.",
+    category: "Demo",
+    accent: "Neutral",
+    age: "Adult",
+    gender: "Unspecified",
+    use_case: "Storytelling",
+    is_preset: false,
+    is_cloned: true,
+    provider: "browser-speech",
+    created_at: state.createdVoice?.created_at || new Date().toISOString(),
+    tags: customization?.tags?.length ? customization.tags : state.createdVoice?.tags || ["Demo", "Browser speech"],
+  }
   saveDemoState({ ...state, createdVoice, preferredVoiceId: createdVoice.id })
   return recordDemoAction("demo_voice_created").createdVoice!
+}
+
+export function deleteDemoVoice() {
+  const state = getDemoState()
+  return saveDemoState({
+    ...state,
+    createdVoice: null,
+    preferredVoiceId: state.preferredVoiceId === "demo-voice-created" ? "demo-voice-warm" : state.preferredVoiceId,
+  })
 }
 
 export function getDemoVoices() {
@@ -153,6 +184,15 @@ export function getDemoNotifications() {
 export function setDemoSidebarCollapsed(sidebarCollapsed: boolean) {
   const state = getDemoState()
   return saveDemoState({ ...state, preferences: { ...state.preferences, sidebarCollapsed } })
+}
+
+export function setDemoStoryLanguage(storyLanguage: string) {
+  const state = getDemoState()
+  return saveDemoState({ ...state, preferences: { ...state.preferences, storyLanguage } })
+}
+
+export function getDemoCounts() {
+  return { stories: 3, voices: getDemoVoices().length }
 }
 
 export function subscribeDemoState(listener: () => void) {

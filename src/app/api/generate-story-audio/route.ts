@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ttsToMp3 } from "@/lib/elevenlabs";
+import { demoModeDisabledResponse } from "@/lib/demo-api-response";
 
 const stories = [
   {
@@ -26,6 +27,8 @@ const stories = [
 ];
 
 export async function POST(request: Request) {
+  const demoResponse = demoModeDisabledResponse("Production story audio generation")
+  if (demoResponse) return demoResponse
   try {
     const { storyId } = await request.json();
     

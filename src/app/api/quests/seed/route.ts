@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 import { NextResponse } from "next/server"
+import { demoModeDisabledResponse } from "@/lib/demo-api-response"
 
 // Single quest with 3 tasks
 const starterQuests = [
@@ -17,6 +18,8 @@ const starterQuests = [
 ]
 
 export async function POST() {
+  const demoResponse = demoModeDisabledResponse("Production quest seeding")
+  if (demoResponse) return demoResponse
   try {
     const supabase = await createSupabaseServerClient()
     

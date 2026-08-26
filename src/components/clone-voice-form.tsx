@@ -19,6 +19,7 @@ import { getVoiceBorderGradient } from "@/lib/voice-colors"
 import { cn } from "@/lib/utils"
 import { isDemoMode } from "@/lib/app-mode"
 import { createDemoVoice } from "@/lib/services/demo/state"
+import { createBrowserNarration } from "@/lib/browser-narration"
 
 // Example text script for reading (approximately 60 seconds at normal pace)
 const EXAMPLE_SCRIPT = "Welcome to the voice cloning recording session. This script is designed to take approximately sixty seconds to read at a normal speaking pace. Please read this text clearly and naturally, maintaining a consistent tone and volume throughout. As you read, imagine you're speaking to a friend or family member. Take your time, and don't rush. The goal is to capture the natural rhythm and cadence of your voice. Make sure you're in a quiet environment with minimal background noise. Speak at your normal volume, neither too loud nor too quiet. Enunciate your words clearly, but speak naturally. This recording will help create a high-quality digital copy of your voice that can be used to narrate stories and bring your family's voices to life. Continue reading until you've finished this entire passage. Thank you for taking the time to create your voice clone. This process is important for ensuring the best possible results."
@@ -103,6 +104,7 @@ export function CloneVoiceForm() {
   const [isPlayingClone, setIsPlayingClone] = useState(false)
   const [selectedPreviewLanguage, setSelectedPreviewLanguage] = useState<string>("en")
   const [removeBackgroundNoise, setRemoveBackgroundNoise] = useState(savedProgress?.removeBackgroundNoise || false)
+  const [isVoiceSaved, setIsVoiceSaved] = useState(false)
   
   // Ref to store the progress interval so we can clear it on reset
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -338,9 +340,8 @@ export function CloneVoiceForm() {
       setProcessingProgress(0)
       window.setTimeout(() => setProcessingProgress(55), 250)
       window.setTimeout(() => {
-        const voice = createDemoVoice()
-        setInstantVoiceId(voice.id)
-        setClonedVoiceId(voice.id)
+        setInstantVoiceId("demo-voice-created")
+        setClonedVoiceId("demo-voice-created")
         setProcessingProgress(100)
         setCurrentStep(4)
         setIsCreatingInstantVoice(false)
@@ -709,6 +710,28 @@ export function CloneVoiceForm() {
 
   // Handle clone audio play/pause - memoized with useCallback
   const handleClonePlayPause = useCallback(async () => {
+    if (isDemoMode()) {
+      if (isPlayingClone) {
+        window.speechSynthesis.cancel()
+        setIsPlayingClone(false)
+        return
+      }
+      const previewTexts: Record<string, string> = {
+        en: `Hello, this is a preview of ${saveVoiceName || voiceName || "Demo Voice"}.`,
+        es: `Hola, esta es una vista previa de ${saveVoiceName || voiceName || "Demo Voice"}.`,
+        fr: `Bonjour, voici un aperçu de ${saveVoiceName || voiceName || "Demo Voice"}.`,
+        zh: `你好，这是${saveVoiceName || voiceName || "演示声音"}的预览。`,
+        hi: `नमस्ते, यह ${saveVoiceName || voiceName || "डेमो आवाज़"} का पूर्वावलोकन है।`,
+      }
+      const utterance = createBrowserNarration(previewTexts[selectedPreviewLanguage] || previewTexts.en, 1, "demo-voice-created", selectedPreviewLanguage)
+      if (!utterance) return
+      utterance.onend = () => setIsPlayingClone(false)
+      utterance.onerror = () => setIsPlayingClone(false)
+      window.speechSynthesis.cancel()
+      window.speechSynthesis.speak(utterance)
+      setIsPlayingClone(true)
+      return
+    }
     if (!cloneAudioRef.current) return
     
     try {
@@ -731,7 +754,7 @@ export function CloneVoiceForm() {
         variant: "destructive"
       })
     }
-  }, [isPlayingClone, toast])
+  }, [isPlayingClone, saveVoiceName, selectedPreviewLanguage, toast, voiceName])
 
   // Save voice to library
   const handleSaveVoice = async () => {
@@ -747,6 +770,12 @@ export function CloneVoiceForm() {
     setIsProcessing(true)
 
     try {
+      if (isDemoMode()) {
+        createDemoVoice({ name: saveVoiceName, tags: saveVoiceTags, description: saveVoiceDescription })
+        setIsVoiceSaved(true)
+        toast({ title: "Demo Voice saved", description: "The simulated voice metadata is now available across this browser demo." })
+        return
+      }
       const response = await fetch("/api/voices/update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -824,6 +853,7 @@ export function CloneVoiceForm() {
     setFileError("")
     setIsProcessing(false)
     setIsCreatingInstantVoice(false)
+    setIsVoiceSaved(false)
     setProcessingProgress(0)
     if (originalAudioRef.current) {
       originalAudioRef.current.pause()
@@ -1576,7 +1606,12 @@ export function CloneVoiceForm() {
                         <div className="text-xs sm:text-sm text-muted-foreground">Clone</div>
                       </div>
                     </div>
-                    {cloneAudioElement && clonePreviewUrls[selectedPreviewLanguage] ? (
+                    {isDemoMode() ? (
+                      <Button type="button" variant="outline" onClick={handleClonePlayPause} className="w-full gap-2">
+                        {isPlayingClone ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                        {isPlayingClone ? "Stop browser preview" : "Preview simulated voice"}
+                      </Button>
+                    ) : cloneAudioElement && clonePreviewUrls[selectedPreviewLanguage] ? (
                       <div className="w-full overflow-hidden" role="region" aria-label="Cloned voice audio player">
                         <EnhancedAudioPlayer
                           audio={cloneAudioElement}
@@ -1603,7 +1638,7 @@ export function CloneVoiceForm() {
                     const langData = getLanguageData(lang)
                     const flag = getLanguageFlag(lang)
                     const name = langData?.name || lang
-                    const hasPreview = !!clonePreviewUrls[lang]
+                    const hasPreview = isDemoMode() || !!clonePreviewUrls[lang]
                     const isSelected = selectedPreviewLanguage === lang
                     
                     return (
@@ -1724,7 +1759,7 @@ export function CloneVoiceForm() {
       )}
 
       {/* Step 5: Save to Library */}
-      {currentStep === 5 && (
+      {currentStep === 5 && !isVoiceSaved && (
         <Card className="glass-card border border-border/50">
           <CardContent className="p-6 sm:p-8">
             <div className="space-y-6">
@@ -1825,7 +1860,7 @@ export function CloneVoiceForm() {
       )}
 
       {/* Success Message */}
-      {currentStep === 5 && !isProcessing && (
+      {currentStep === 5 && isVoiceSaved && !isProcessing && (
         <Card className="glass-card border border-green-500/50 bg-green-500/5">
           <CardContent className="p-6 sm:p-8">
             <div className="flex flex-col items-center text-center space-y-4">

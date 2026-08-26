@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import Link from "next/link"
+import { isDemoMode } from "@/lib/app-mode"
+import { getDemoNotifications, markDemoNotificationsRead, subscribeDemoState } from "@/lib/services/demo/state"
 
 interface Notification {
   id: string
@@ -35,6 +37,12 @@ export function NotificationsDropdown() {
   const fetchNotifications = async () => {
     try {
       setLoading(true)
+      if (isDemoMode()) {
+        const localNotifications = getDemoNotifications()
+        setNotifications(localNotifications)
+        setUnreadCount(localNotifications.filter((notification) => !notification.read).length)
+        return
+      }
       const response = await fetch("/api/notifications")
       if (response.ok) {
         const data = await response.json()
@@ -74,12 +82,17 @@ export function NotificationsDropdown() {
 
   useEffect(() => {
     fetchNotifications()
+    if (isDemoMode()) return subscribeDemoState(fetchNotifications)
     // Refresh notifications every 30 seconds
     const interval = setInterval(fetchNotifications, 30000)
     return () => clearInterval(interval)
   }, [])
 
   const markAsRead = async (notificationId: string) => {
+    if (isDemoMode()) {
+      markDemoNotificationsRead([notificationId])
+      return
+    }
     // Update local state immediately for better UX
     setNotifications(prev => 
       prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
@@ -109,6 +122,10 @@ export function NotificationsDropdown() {
   }
 
   const markAllAsRead = async () => {
+    if (isDemoMode()) {
+      markDemoNotificationsRead(notifications.map((notification) => notification.id))
+      return
+    }
     const allIds = notifications.map(n => n.id)
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
     setUnreadCount(0)

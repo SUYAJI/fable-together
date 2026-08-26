@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation"
 import { Search, BookOpen, Mic } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
+import { isDemoMode } from "@/lib/app-mode"
+import { DEMO_STORIES } from "@/lib/services/demo/story-repository"
+import { getDemoVoices } from "@/lib/services/demo/state"
 
 interface SearchResult {
   id: string
@@ -49,6 +52,16 @@ export function SearchAutocomplete() {
     setLoading(true)
     debounceRef.current = setTimeout(async () => {
       try {
+        if (isDemoMode()) {
+          const normalized = query.trim().toLowerCase()
+          const localResults: SearchResult[] = [
+            ...DEMO_STORIES.filter((story) => `${story.title} ${story.summary}`.toLowerCase().includes(normalized)).map((story) => ({ id: String(story.id), title: story.title, type: "story" as const, isExample: true })),
+            ...getDemoVoices().filter((voice) => `${voice.name} ${voice.description} ${voice.tags?.join(" ")}`.toLowerCase().includes(normalized)).map((voice) => ({ id: voice.id, name: voice.name, type: "voice" as const })),
+          ]
+          setResults(localResults.slice(0, 10))
+          setIsOpen(localResults.length > 0)
+          return
+        }
         const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
         const data = await response.json()
         
@@ -79,9 +92,9 @@ export function SearchAutocomplete() {
 
   const handleSelect = (result: SearchResult) => {
     if (result.type === "story") {
-      router.push(`/stories?id=${result.id}`)
+      router.push(`/stories?story=${result.id}`)
     } else if (result.type === "voice") {
-      router.push(`/voices`)
+      router.push(`/voices#voice-${result.id}`)
     }
     setQuery("")
     setIsOpen(false)

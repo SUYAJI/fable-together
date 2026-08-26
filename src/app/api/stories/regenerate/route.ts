@@ -2,8 +2,11 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { ttsToMp3, calculateTokenCost } from "@/lib/elevenlabs";
 import { randomUUID } from "crypto";
+import { demoModeDisabledResponse } from "@/lib/demo-api-response";
 
 export async function POST(request: Request) {
+  const demoResponse = demoModeDisabledResponse("Production story regeneration")
+  if (demoResponse) return demoResponse
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();

@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { getVoices } from "@/lib/elevenlabs";
+import { demoModeDisabledResponse } from "@/lib/demo-api-response";
 
 export async function GET() {
+  const demoResponse = demoModeDisabledResponse("ElevenLabs diagnostics")
+  if (demoResponse) return demoResponse
   try {
     console.log("Testing ElevenLabs API...");
     console.log("API Key exists:", !!process.env.ELEVENLABS_API_KEY);

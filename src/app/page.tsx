@@ -195,27 +195,32 @@ export default function HomePage() {
               Transform your family&apos;s voices into enchanting narrators. Create personalized stories that bring your loved ones&apos; voices to life with AI-powered storytelling. Generate personalized stories with your family&apos;s voices using advanced AI. Record family members to create unique voice narrators that sound just like them. Listen to your stories anytime, anywhere with your family and friends.
             </p>
             {isDemoMode() && (
-              <Button asChild size="lg" className="mt-6 gap-2">
-                <Link href="/dashboard">
-                  Explore Demo
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </Button>
+              <div className="mt-6">
+                <Button asChild size="lg" className="gap-2">
+                  <Link href="/dashboard">
+                    Explore Demo
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                </Button>
+                <p className="mt-3 text-sm text-muted-foreground">No account or production credentials required. Demo progress stays in this browser.</p>
+              </div>
             )}
           </section>
 
           {/* Auth Section - Register/Sign In Toggle */}
-          <section
-            ref={cardsRef}
-            className="max-w-4xl mx-auto mb-8 sm:mb-12 md:mb-16 flex-shrink-0"
-            aria-labelledby="auth-section-heading"
-          >
-            <h2 id="auth-section-heading" className="sr-only">
-              Register or Sign In
-            </h2>
+          {!isDemoMode() && (
+            <section
+              ref={cardsRef}
+              className="max-w-4xl mx-auto mb-8 sm:mb-12 md:mb-16 flex-shrink-0"
+              aria-labelledby="auth-section-heading"
+            >
+              <h2 id="auth-section-heading" className="sr-only">
+                Register or Sign In
+              </h2>
 
-            <AuthToggleForm />
-          </section>
+              <AuthToggleForm />
+            </section>
+          )}
         </div>
       </main>
 

@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { demoModeDisabledResponse } from "@/lib/demo-api-response";
 
 export async function POST(request: Request) {
+  const demoResponse = demoModeDisabledResponse("Production story saving")
+  if (demoResponse) return demoResponse
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();

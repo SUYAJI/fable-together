@@ -1,7 +1,10 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 import { NextResponse } from "next/server"
+import { demoModeDisabledResponse } from "@/lib/demo-api-response"
 
 export async function POST() {
+  const demoResponse = demoModeDisabledResponse("Production quest initialization")
+  if (demoResponse) return demoResponse
   try {
     const supabase = await createSupabaseServerClient()
     

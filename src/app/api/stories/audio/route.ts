@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { demoModeDisabledResponse } from "@/lib/demo-api-response";
 
 /**
  * GET /api/stories/audio?storyId={id}&voiceId={id}&language={code}
@@ -7,6 +8,8 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
  * No authentication required - used for pre-generated audio
  */
 export async function GET(request: Request) {
+  const demoResponse = demoModeDisabledResponse("Production story audio lookup")
+  if (demoResponse) return demoResponse
   try {
     const { searchParams } = new URL(request.url);
     const storyId = searchParams.get("storyId");

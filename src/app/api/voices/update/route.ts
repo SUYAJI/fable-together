@@ -9,6 +9,7 @@
 
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { demoModeDisabledResponse } from "@/lib/demo-api-response";
 
 /**
  * Update voice metadata
@@ -17,6 +18,8 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
  * @returns NextResponse with updated voice data
  */
 export async function POST(request: Request) {
+  const demoResponse = demoModeDisabledResponse("Production voice updates")
+  if (demoResponse) return demoResponse
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();

@@ -23,12 +23,14 @@ import { Home, BookOpen, Mic, Settings, Sparkles, Menu, Users, Trophy, Share2, H
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { InviteFriendsModal } from "@/components/invite-friends-modal"
 import { useEffect, useState } from "react"
+import { isDemoMode } from "@/lib/app-mode"
+import { getDemoCounts, getDemoState, setDemoSidebarCollapsed, subscribeDemoState } from "@/lib/services/demo/state"
 
 /**
  * Main navigation items for the sidebar
@@ -66,7 +68,17 @@ function SidebarContent({ isCollapsed = false }: { isCollapsed?: boolean }) {
   const [voiceCount, setVoiceCount] = useState<number>(getInitialCounts().voices)
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
 
+  const syncDemoCounts = () => {
+    const counts = getDemoCounts()
+    setStoryCount(counts.stories)
+    setVoiceCount(counts.voices)
+  }
+
     const fetchCounts = async () => {
+      if (isDemoMode()) {
+        syncDemoCounts()
+        return
+      }
       try {
         const response = await fetch("/api/library/counts")
         if (response.ok) {
@@ -95,6 +107,11 @@ function SidebarContent({ isCollapsed = false }: { isCollapsed?: boolean }) {
   }
 
   useEffect(() => {
+    if (isDemoMode()) {
+      syncDemoCounts()
+      return subscribeDemoState(syncDemoCounts)
+    }
+
     // Only fetch if cache is expired or doesn't exist
     const shouldFetch = !cachedCounts || (Date.now() - cachedCounts.timestamp >= CACHE_DURATION)
     
@@ -331,6 +348,8 @@ export function MobileSidebarTrigger() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-0">
+        <SheetTitle className="sr-only">Fable Together navigation</SheetTitle>
+        <SheetDescription className="sr-only">Open a demo page or view the local story and voice counts.</SheetDescription>
         <SidebarContent />
       </SheetContent>
     </Sheet>
@@ -340,19 +359,23 @@ export function MobileSidebarTrigger() {
 // Main Sidebar Component
 export function AppSidebar() {
   const isMobile = useIsMobile()
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('sidebar-collapsed')
-      return saved === 'true'
-    }
-    return false
-  })
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [hasLoadedPreference, setHasLoadedPreference] = useState(false)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('sidebar-collapsed', String(isCollapsed))
+      if (isDemoMode()) setIsCollapsed(getDemoState().preferences.sidebarCollapsed)
+      else setIsCollapsed(localStorage.getItem('sidebar-collapsed') === 'true')
+      setHasLoadedPreference(true)
     }
-  }, [isCollapsed])
+  }, [])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && hasLoadedPreference) {
+      if (isDemoMode()) setDemoSidebarCollapsed(isCollapsed)
+      else localStorage.setItem('sidebar-collapsed', String(isCollapsed))
+    }
+  }, [hasLoadedPreference, isCollapsed])
 
   if (isMobile) {
     return null // Mobile sidebar is handled by MobileSidebarTrigger

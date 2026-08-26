@@ -4,10 +4,10 @@ import test from "node:test"
 import { getAppMode, resolveAppMode } from "../src/lib/app-mode"
 import { demoClientServices } from "../src/lib/services/demo/client-services"
 import { DEMO_PROFILE, DEMO_USER } from "../src/lib/services/demo/fixtures"
-import { demoStoryRepository } from "../src/lib/services/demo/story-repository"
+import { demoStoryRepository, getDemoStoryTranslation } from "../src/lib/services/demo/story-repository"
 import { DEMO_NARRATION_MANIFEST, demoNarrationService } from "../src/lib/services/demo/narration"
 import { demoVoiceRepository } from "../src/lib/services/demo/voice-repository"
-import { DEMO_STATE_KEY, createDemoVoice, getDemoState, recordDemoAction, resetDemoState } from "../src/lib/services/demo/state"
+import { DEMO_STATE_KEY, createDemoVoice, deleteDemoVoice, getDemoCounts, getDemoState, getDemoVoices, recordDemoAction, resetDemoState, setDemoPreferredVoice } from "../src/lib/services/demo/state"
 
 function memoryStorage() {
   const values = new Map<string, string>()
@@ -139,4 +139,50 @@ test("preferred voice and Demo Voice metadata persist across repository reads an
   assert.equal("recordedAudio" in created, false)
   resetDemoState()
   assert.equal(getDemoState().createdVoice, null)
+})
+
+test("all four showcase quests award their exact credits once and reset to the canonical balance", () => {
+  resetDemoState()
+  const actions = ["story_opened", "voice_previewed", "narration_created", "demo_voice_created"] as const
+  const balances = [160, 170, 190, 210]
+
+  actions.forEach((action, index) => {
+    if (action === "demo_voice_created") createDemoVoice()
+    else recordDemoAction(action)
+    assert.equal(getDemoState().credits.available, balances[index])
+    recordDemoAction(action)
+    assert.equal(getDemoState().credits.available, balances[index])
+  })
+
+  assert.equal(getDemoState().quests.filter((quest) => quest.status === "completed").length, 4)
+  const reset = resetDemoState()
+  assert.equal(reset.credits.available, 150)
+  assert.equal(reset.credits.total, 150)
+  assert.equal(reset.quests.every((quest) => quest.status === "not_started"), true)
+})
+
+test("Demo Voice creation changes library counts and deletion restores a safe preferred voice", () => {
+  resetDemoState()
+  assert.deepEqual(getDemoCounts(), { stories: 3, voices: 6 })
+  const created = createDemoVoice({ name: "Campfire Voice", description: "A local showcase voice.", tags: ["Family"] })
+  assert.equal(created.name, "Campfire Voice")
+  assert.equal(getDemoVoices().length, 7)
+  assert.equal(getDemoState().preferredVoiceId, "demo-voice-created")
+
+  setDemoPreferredVoice("demo-voice-created")
+  deleteDemoVoice()
+  assert.deepEqual(getDemoCounts(), { stories: 3, voices: 6 })
+  assert.equal(getDemoState().createdVoice, null)
+  assert.equal(getDemoState().preferredVoiceId, "demo-voice-warm")
+})
+
+test("fixed demo stories resolve stored translations without a translation service", () => {
+  const english = getDemoStoryTranslation(1, "en")
+  const spanish = getDemoStoryTranslation(1, "es")
+  const french = getDemoStoryTranslation(2, "fr")
+
+  assert.ok(english?.startsWith("Once upon a time"))
+  assert.ok(spanish?.includes("Érase una vez"))
+  assert.ok(french?.includes("phare"))
+  assert.equal(getDemoStoryTranslation(1, "unsupported"), english)
 })

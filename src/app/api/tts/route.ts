@@ -3,8 +3,11 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { ttsToMp3 } from "@/lib/elevenlabs";
 import { randomUUID } from "crypto";
+import { demoModeDisabledResponse } from "@/lib/demo-api-response";
 
 export async function POST(req: Request) {
+  const demoResponse = demoModeDisabledResponse("Production text-to-speech")
+  if (demoResponse) return demoResponse
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
