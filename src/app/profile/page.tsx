@@ -579,7 +579,7 @@ export default function ProfilePage() {
                             />
                             <button
                               onClick={() => fileInputRef.current?.click()}
-                              className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white shadow-lg hover:bg-primary/90 transition-colors"
+                              className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-colors hover:bg-primary/90"
                               disabled={uploading}
                             >
                               {uploading ? (

@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import test from "node:test"
 
 import { getAppMode, resolveAppMode } from "../src/lib/app-mode"
+import { loadBrowserVoices, selectBrowserVoice } from "../src/lib/browser-narration"
 import { demoClientServices } from "../src/lib/services/demo/client-services"
 import { DEMO_PROFILE, DEMO_USER } from "../src/lib/services/demo/fixtures"
 import { demoStoryRepository, getDemoStoryTranslation } from "../src/lib/services/demo/story-repository"
@@ -71,6 +72,32 @@ test("demo voice repository returns deterministic fictional voices", async () =>
     voices.map((voice) => voice.id),
     ["demo-voice-warm", "demo-voice-gentle", "demo-voice-bright", "demo-voice-calm", "demo-voice-wise", "demo-voice-playful"],
   )
+  assert.equal(voices.every((voice) => voice.languages.join(",") === "en,es,fr,zh,hi"), true)
+})
+
+test("browser narration selects only voices matching the requested language", () => {
+  const englishVoice = { lang: "en-US", name: "English", voiceURI: "english", default: true, localService: true } as SpeechSynthesisVoice
+  const spanishVoice = { lang: "es-MX", name: "Spanish", voiceURI: "spanish", default: false, localService: true } as SpeechSynthesisVoice
+
+  assert.equal(selectBrowserVoice([englishVoice, spanishVoice], "es"), spanishVoice)
+  assert.equal(selectBrowserVoice([englishVoice], "fr"), null)
+})
+
+test("browser voice loading waits for the voiceschanged event", async () => {
+  const frenchVoice = { lang: "fr-FR", name: "French", voiceURI: "french", default: false, localService: true } as SpeechSynthesisVoice
+  let voices: SpeechSynthesisVoice[] = []
+  let notifyVoicesChanged: () => void = () => undefined
+  const synthesis = {
+    getVoices: () => voices,
+    addEventListener: (_type: string, listener: () => void) => { notifyVoicesChanged = listener },
+    removeEventListener: () => undefined,
+  } as unknown as SpeechSynthesis
+
+  const loading = loadBrowserVoices(synthesis, 100)
+  voices = [frenchVoice]
+  notifyVoicesChanged()
+
+  assert.deepEqual(await loading, [frenchVoice])
 })
 
 test("missing bundled narration resolves to the browser narration fallback", async () => {

@@ -110,14 +110,14 @@ export function CloneVoiceModal({ open, onOpenChange }: CloneVoiceModalProps) {
           </div>
 
           {/* Descriptive Text */}
-          <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-purple-50 rounded-xl">
+          <div className="mb-6 rounded-xl border border-primary/10 bg-primary/5 p-4 sm:mb-8 sm:p-6">
             <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 sm:h-12 sm:w-12">
+                <Users className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
               </div>
               <h3 className="text-lg sm:text-xl font-semibold">Create Your Digital Voice</h3>
             </div>
-            <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+            <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
               Create a digital clone of your voice to use in stories. Record ~2 minutes of clear speech or
               upload an audio sample. Your voice will be available for use in all your stories.
             </p>
@@ -145,7 +145,7 @@ export function CloneVoiceModal({ open, onOpenChange }: CloneVoiceModalProps) {
                 id="role"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="input-field w-full h-12 sm:h-14 text-sm sm:text-base bg-white"
+                className="input-field h-12 w-full bg-background text-sm text-foreground sm:h-14 sm:text-base"
               >
                 <option value="">Select a role</option>
                 {availableRoles.map((roleOption) => (
@@ -166,8 +166,8 @@ export function CloneVoiceModal({ open, onOpenChange }: CloneVoiceModalProps) {
                     onClick={() => handleTagToggle(tag)}
                     className={`px-2.5 sm:px-3 py-1.5 sm:py-1 rounded-full text-xs sm:text-sm transition-colors min-h-[44px] touch-manipulation ${
                       selectedTags.includes(tag)
-                        ? "bg-purple-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
                     }`}
                   >
                     {tag}
@@ -182,8 +182,8 @@ export function CloneVoiceModal({ open, onOpenChange }: CloneVoiceModalProps) {
                 onClick={() => setUploadMethod("upload")}
                 className={`flex-1 h-12 sm:h-14 text-sm sm:text-base gap-2 rounded-lg flex items-center justify-center min-h-[44px] touch-manipulation ${
                   uploadMethod === "upload"
-                    ? "bg-neutral-900 text-white"
-                    : "bg-white text-neutral-900 hover:bg-neutral-50 border border-neutral-300"
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-border bg-background text-foreground hover:bg-muted"
                 }`}
               >
                 📤 Upload File
@@ -193,8 +193,8 @@ export function CloneVoiceModal({ open, onOpenChange }: CloneVoiceModalProps) {
                 onClick={() => setUploadMethod("record")}
                 className={`flex-1 h-12 sm:h-14 text-sm sm:text-base gap-2 rounded-lg flex items-center justify-center min-h-[44px] touch-manipulation ${
                   uploadMethod === "record"
-                    ? "bg-neutral-900 text-white"
-                    : "bg-white text-neutral-900 hover:bg-neutral-50 border border-neutral-300"
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-border bg-background text-foreground hover:bg-muted"
                 }`}
               >
                 🎤 Record
@@ -203,14 +203,14 @@ export function CloneVoiceModal({ open, onOpenChange }: CloneVoiceModalProps) {
 
             {uploadMethod === "upload" && (
               <div
-                className="border-2 border-dashed border-gray-300 rounded-xl p-8 sm:p-12 md:p-16 text-center cursor-pointer hover:border-gray-400 transition-colors min-h-[120px] sm:min-h-[200px] flex items-center justify-center"
+                className="flex min-h-[120px] cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border p-8 text-center transition-colors hover:border-primary/50 sm:min-h-[200px] sm:p-12 md:p-16"
                 onClick={() => document.getElementById("audio-upload")?.click()}
               >
                 <div className="flex flex-col items-center gap-2 sm:gap-3">
                   <div className="text-3xl sm:text-4xl md:text-5xl">📤</div>
                   <div>
-                    <p className="text-sm sm:text-base text-gray-700 mb-1">Drop an audio file here or click to browse</p>
-                    <p className="text-xs sm:text-sm text-gray-500">MP3, WAV, or M4A (max 10MB, 30s-5min)</p>
+                    <p className="mb-1 text-sm text-foreground sm:text-base">Drop an audio file here or click to browse</p>
+                    <p className="text-xs text-muted-foreground sm:text-sm">MP3, WAV, or M4A (max 10MB, 30s-5min)</p>
                   </div>
                 </div>
                 <input
@@ -224,12 +224,12 @@ export function CloneVoiceModal({ open, onOpenChange }: CloneVoiceModalProps) {
             )}
 
             {uploadMethod === "record" && (
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 sm:p-12 md:p-16 text-center min-h-[120px] sm:min-h-[200px] flex items-center justify-center">
+              <div className="flex min-h-[120px] items-center justify-center rounded-xl border-2 border-dashed border-border p-8 text-center sm:min-h-[200px] sm:p-12 md:p-16">
                 <div className="flex flex-col items-center gap-2 sm:gap-3">
                   <div className="text-3xl sm:text-4xl md:text-5xl">🎤</div>
                   <div>
-                    <p className="text-sm sm:text-base text-gray-700 mb-1">Recording functionality coming soon</p>
-                    <p className="text-xs sm:text-sm text-gray-500">Please use the upload option for now</p>
+                    <p className="mb-1 text-sm text-foreground sm:text-base">Recording functionality coming soon</p>
+                    <p className="text-xs text-muted-foreground sm:text-sm">Please use the upload option for now</p>
                   </div>
                 </div>
               </div>
@@ -249,7 +249,7 @@ export function CloneVoiceModal({ open, onOpenChange }: CloneVoiceModalProps) {
               </div>
             )}
 
-            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+            <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
               Voice cloning requires a clear 30-60 second sample. The quality of your sample determines the voice clone
               quality.
             </p>
@@ -258,7 +258,7 @@ export function CloneVoiceModal({ open, onOpenChange }: CloneVoiceModalProps) {
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="text-sm sm:text-base px-4 sm:px-8 h-11 sm:h-12 hover:bg-gray-100 rounded-lg min-h-[44px] touch-manipulation"
+                className="h-11 min-h-[44px] touch-manipulation rounded-lg px-4 text-sm hover:bg-muted sm:h-12 sm:px-8 sm:text-base"
               >
                 Cancel
               </button>
@@ -267,8 +267,8 @@ export function CloneVoiceModal({ open, onOpenChange }: CloneVoiceModalProps) {
                 disabled={!canSubmit || isCloning}
                 className={`px-4 sm:px-6 py-2.5 sm:py-2 rounded-lg flex items-center justify-center gap-2 min-h-[44px] touch-manipulation text-sm sm:text-base ${
                   canSubmit && !isCloning
-                    ? "bg-neutral-900 text-white hover:bg-neutral-800"
-                    : "bg-neutral-200 text-neutral-500 cursor-not-allowed"
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "cursor-not-allowed bg-muted text-muted-foreground"
                 }`}
               >
                 {isCloning && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>}

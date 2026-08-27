@@ -30,7 +30,7 @@ import { getVoiceBorderGradient } from "@/lib/voice-colors"
 import { CheckCircle2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { StoryPlayerModal, type PlayerStory, type PlayerNarration } from "@/components/story-player-modal"
-import { createBrowserNarration, isBrowserNarrationAvailable } from "@/lib/browser-narration"
+import { createBrowserNarration, getBrowserNarrationUnavailableMessage, isBrowserNarrationAvailable } from "@/lib/browser-narration"
 import { isDemoMode } from "@/lib/app-mode"
 import { getDemoState, getDemoVoices, recordDemoAction, setDemoPreferredVoice, setDemoStoryLanguage } from "@/lib/services/demo/state"
 import { getDemoStoryTranslation } from "@/lib/services/demo/story-repository"
@@ -446,6 +446,7 @@ export function StoryNarrationControls({
 
   // Handle voice preview
   const handleVoicePreview = async (voiceId: string, voiceName: string) => {
+    setError(null)
     // Stop current preview if playing
     if (previewAudio) {
       previewAudio.pause()
@@ -472,8 +473,12 @@ export function StoryNarrationControls({
       }
       const previewText = previewTexts[selectedLanguage] || previewTexts['en']
       if (isDemoMode()) {
-        const utterance = createBrowserNarration(previewText, 1, voiceId, selectedLanguage)
-        if (!utterance) throw new Error("Browser narration is unavailable")
+        const utterance = await createBrowserNarration(previewText, 1, voiceId, selectedLanguage)
+        if (!utterance) {
+          setError(getBrowserNarrationUnavailableMessage(selectedLanguage))
+          setPlayingPreviewId(null)
+          return
+        }
         utterance.onend = () => setPlayingPreviewId(null)
         utterance.onerror = () => setPlayingPreviewId(null)
         window.speechSynthesis.cancel()
@@ -499,8 +504,12 @@ export function StoryNarrationControls({
       if (response.headers.get("content-type")?.includes("application/json")) {
         const preview = await response.json()
         if (preview.playback === "browser-speech") {
-          const utterance = createBrowserNarration(preview.text, 1)
-          if (!utterance) throw new Error("Browser narration is unavailable")
+          const utterance = await createBrowserNarration(preview.text, 1, voiceId, selectedLanguage)
+          if (!utterance) {
+            setError(getBrowserNarrationUnavailableMessage(selectedLanguage))
+            setPlayingPreviewId(null)
+            return
+          }
           utterance.onend = () => setPlayingPreviewId(null)
           utterance.onerror = () => setPlayingPreviewId(null)
           window.speechSynthesis.cancel()
@@ -541,7 +550,9 @@ export function StoryNarrationControls({
       previewAudio.src = ""
       setPreviewAudio(null)
     }
+    if (isBrowserNarrationAvailable()) window.speechSynthesis.cancel()
     setPlayingPreviewId(null)
+    setError(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedLanguage])
 

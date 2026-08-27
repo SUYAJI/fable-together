@@ -70,14 +70,14 @@ export function DiscoverStoriesModal({ open, onOpenChange }: DiscoverStoriesModa
 
           <div className="grid gap-4 md:grid-cols-12 mb-6">
             <input
-              className="md:col-span-4 rounded-xl border border-neutral-300 px-4 py-2.5 text-base"
+              className="rounded-xl border border-border bg-background px-4 py-2.5 text-base text-foreground md:col-span-4"
               placeholder="Search title, author, theme, language…"
               value={q}
               onChange={(e) => setQ(e.target.value)}
               aria-label="Search stories"
             />
             <select
-              className="md:col-span-3 rounded-xl border border-neutral-300 px-4 py-2.5 bg-white text-base"
+              className="rounded-xl border border-border bg-background px-4 py-2.5 text-base text-foreground md:col-span-3"
               value={theme}
               onChange={(e) => setTheme(e.target.value)}
               aria-label="Filter by theme"
@@ -89,7 +89,7 @@ export function DiscoverStoriesModal({ open, onOpenChange }: DiscoverStoriesModa
               ))}
             </select>
             <select
-              className="md:col-span-3 rounded-xl border border-neutral-300 px-4 py-2.5 bg-white text-base"
+              className="rounded-xl border border-border bg-background px-4 py-2.5 text-base text-foreground md:col-span-3"
               value={lang}
               onChange={(e) => setLang(e.target.value)}
               aria-label="Filter by language"
@@ -101,7 +101,7 @@ export function DiscoverStoriesModal({ open, onOpenChange }: DiscoverStoriesModa
               ))}
             </select>
             <select
-              className="md:col-span-2 rounded-xl border border-neutral-300 px-4 py-2.5 bg-white text-base"
+              className="rounded-xl border border-border bg-background px-4 py-2.5 text-base text-foreground md:col-span-2"
               value={sortBy}
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onChange={(e) => setSortBy(e.target.value as any)}
@@ -117,7 +117,7 @@ export function DiscoverStoriesModal({ open, onOpenChange }: DiscoverStoriesModa
 
           <div className="grid grid-cols-3 gap-6 mb-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+              <label className="whitespace-nowrap text-sm font-medium text-muted-foreground">
                 Min rating: {minRating.toFixed(1)}
               </label>
               <input
@@ -131,7 +131,7 @@ export function DiscoverStoriesModal({ open, onOpenChange }: DiscoverStoriesModa
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+              <label className="whitespace-nowrap text-sm font-medium text-muted-foreground">
                 Max duration: {maxDuration} min
               </label>
               <input
@@ -145,7 +145,7 @@ export function DiscoverStoriesModal({ open, onOpenChange }: DiscoverStoriesModa
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+              <label className="whitespace-nowrap text-sm font-medium text-muted-foreground">
                 Max price: {maxPrice} tokens
               </label>
               <input
@@ -165,7 +165,7 @@ export function DiscoverStoriesModal({ open, onOpenChange }: DiscoverStoriesModa
               {sampleStories.map((st) => (
                 <div
                   key={st.id}
-                  className="flex items-start gap-6 p-6 rounded-2xl border border-gray-200 hover:border-gray-300 transition-colors bg-white"
+                  className="flex items-start gap-6 rounded-2xl border border-border bg-card p-6 text-card-foreground transition-colors hover:border-primary/30"
                 >
                   <div className="relative w-36 h-36 rounded-xl overflow-hidden flex-shrink-0">
                     <Image
@@ -178,8 +178,8 @@ export function DiscoverStoriesModal({ open, onOpenChange }: DiscoverStoriesModa
                   </div>
                   <div className="flex-1 min-w-0 pt-2">
                     <h3 className="font-bold text-2xl mb-2">{st.title}</h3>
-                    <p className="text-base text-gray-600 mb-3">by {st.author}</p>
-                    <div className="flex items-center gap-3 text-base text-gray-700 mb-4">
+                    <p className="mb-3 text-base text-muted-foreground">by {st.author}</p>
+                    <div className="mb-4 flex items-center gap-3 text-base text-muted-foreground">
                       <span className="flex items-center gap-1.5">
                         <span className="text-yellow-500">⭐</span>
                         <span className="font-medium">{st.rating}</span>
@@ -189,26 +189,26 @@ export function DiscoverStoriesModal({ open, onOpenChange }: DiscoverStoriesModa
                     </div>
                     <div className="flex gap-2">
                       {st.tags.map((t) => (
-                        <span key={t} className="text-xs px-3 py-1 rounded-full bg-neutral-100 text-neutral-800">
+                        <span key={t} className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
                           {t}
                         </span>
                       ))}
                     </div>
                   </div>
                   <div className="flex items-center gap-4 shrink-0 pt-2">
-                    <div className="text-base font-medium text-neutral-700 min-w-[80px] text-right">
+                    <div className="min-w-[80px] text-right text-base font-medium text-card-foreground">
                       {st.priceTokens} tokens
                     </div>
                     <button
                       onClick={() => onPlayPreview(st.id)}
-                      className="w-12 h-12 rounded-full bg-neutral-900 text-white flex items-center justify-center hover:bg-neutral-800 transition-colors"
+                      className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
                       aria-label={`Preview ${st.title}`}
                     >
                       ▶
                     </button>
                     <button
                       onClick={() => onAddToLibrary(st.id)}
-                      className="px-6 py-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-medium transition-colors"
+                      className="rounded-xl bg-primary px-6 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                     >
                       Add
                     </button>

@@ -6,7 +6,7 @@ import { ArrowLeft, Pause, Play } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { AudioPlayer } from "@/components/audio-player"
-import { createBrowserNarration, isBrowserNarrationAvailable } from "@/lib/browser-narration"
+import { createBrowserNarration, getBrowserNarrationUnavailableMessage, isBrowserNarrationAvailable } from "@/lib/browser-narration"
 
 interface Creator {
   id: string
@@ -47,6 +47,8 @@ export function StoryPlayerModal({ story, narration, open, onOpenChange }: Story
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
   const [isBrowserPlaying, setIsBrowserPlaying] = useState(false)
   const [isBrowserPaused, setIsBrowserPaused] = useState(false)
+  const [isBrowserPreparing, setIsBrowserPreparing] = useState(false)
+  const [browserMessage, setBrowserMessage] = useState<string | null>(null)
   const [highlightedWord, setHighlightedWord] = useState(0)
   const textRef = useRef<HTMLDivElement>(null)
 
@@ -66,7 +68,7 @@ export function StoryPlayerModal({ story, narration, open, onOpenChange }: Story
     }
   }, [open])
 
-  const handleBrowserPlayback = () => {
+  const handleBrowserPlayback = async () => {
     if (!narration || narration.playback !== "browser-speech" || !isBrowserNarrationAvailable()) return
 
     if (isBrowserPlaying && !isBrowserPaused) {
@@ -80,8 +82,14 @@ export function StoryPlayerModal({ story, narration, open, onOpenChange }: Story
       return
     }
 
-    const utterance = createBrowserNarration(narration.text, narration.speed, narration.voiceId, narration.language)
-    if (!utterance) return
+    setBrowserMessage(null)
+    setIsBrowserPreparing(true)
+    const utterance = await createBrowserNarration(narration.text, narration.speed, narration.voiceId, narration.language)
+    setIsBrowserPreparing(false)
+    if (!utterance) {
+      setBrowserMessage(getBrowserNarrationUnavailableMessage(narration.language))
+      return
+    }
     utterance.onend = () => {
       setIsBrowserPlaying(false)
       setIsBrowserPaused(false)
@@ -139,15 +147,16 @@ export function StoryPlayerModal({ story, narration, open, onOpenChange }: Story
             ) : narration?.playback === "browser-speech" ? (
               <div className="space-y-3 rounded-xl bg-muted/30 p-4">
                 <p className="text-sm font-medium">{narration.disclosure || "Browser narration preview"}</p>
-                <p className="text-sm text-muted-foreground">Uses an available system voice. Seeking is unavailable because browser speech is streamed by the browser.</p>
+                <p className="text-sm text-muted-foreground">Uses a matching system voice for the selected language. Seeking is unavailable during browser playback.</p>
                 {browserUnavailable ? (
                   <p className="text-sm text-destructive">Browser narration is not available in this browser.</p>
                 ) : (
-                  <Button onClick={handleBrowserPlayback} aria-label={isBrowserPlaying && !isBrowserPaused ? "Pause browser narration" : "Play browser narration"}>
+                  <Button disabled={isBrowserPreparing} onClick={handleBrowserPlayback} aria-label={isBrowserPlaying && !isBrowserPaused ? "Pause browser narration" : "Play browser narration"}>
                     {isBrowserPlaying && !isBrowserPaused ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
-                    {isBrowserPlaying && !isBrowserPaused ? "Pause" : isBrowserPaused ? "Resume" : "Play narration"}
+                    {isBrowserPreparing ? "Checking voice..." : isBrowserPlaying && !isBrowserPaused ? "Pause" : isBrowserPaused ? "Resume" : "Play narration"}
                   </Button>
                 )}
+                {browserMessage && <p className="text-sm text-muted-foreground" role="status">{browserMessage}</p>}
               </div>
             ) : (
               <p className="rounded-xl bg-muted/30 p-4 text-sm text-muted-foreground">Narration is not available yet.</p>

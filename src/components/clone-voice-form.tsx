@@ -16,7 +16,7 @@ import { EnhancedAudioPlayer } from "@/components/enhanced-audio-player"
 import { SUPPORTED_LANGUAGES, getLanguageData, getLanguageFlag, ELEVENLABS_LANGUAGE_MAP } from "@/lib/language-codes"
 import { isDemoMode } from "@/lib/app-mode"
 import { createDemoVoice } from "@/lib/services/demo/state"
-import { createBrowserNarration } from "@/lib/browser-narration"
+import { createBrowserNarration, getBrowserNarrationUnavailableMessage } from "@/lib/browser-narration"
 
 // Example text script for reading (approximately 60 seconds at normal pace)
 const EXAMPLE_SCRIPT = "Welcome to the voice cloning recording session. This script is designed to take approximately sixty seconds to read at a normal speaking pace. Please read this text clearly and naturally, maintaining a consistent tone and volume throughout. As you read, imagine you're speaking to a friend or family member. Take your time, and don't rush. The goal is to capture the natural rhythm and cadence of your voice. Make sure you're in a quiet environment with minimal background noise. Speak at your normal volume, neither too loud nor too quiet. Enunciate your words clearly, but speak naturally. This recording will help create a high-quality digital copy of your voice that can be used to narrate stories and bring your family's voices to life. Continue reading until you've finished this entire passage. Thank you for taking the time to create your voice clone. This process is important for ensuring the best possible results."
@@ -713,8 +713,14 @@ export function CloneVoiceForm() {
         zh: `你好，这是${saveVoiceName || voiceName || "演示声音"}的预览。`,
         hi: `नमस्ते, यह ${saveVoiceName || voiceName || "डेमो आवाज़"} का पूर्वावलोकन है।`,
       }
-      const utterance = createBrowserNarration(previewTexts[selectedPreviewLanguage] || previewTexts.en, 1, "demo-voice-created", selectedPreviewLanguage)
-      if (!utterance) return
+      const utterance = await createBrowserNarration(previewTexts[selectedPreviewLanguage] || previewTexts.en, 1, "demo-voice-created", selectedPreviewLanguage)
+      if (!utterance) {
+        toast({
+          title: "Preview unavailable",
+          description: getBrowserNarrationUnavailableMessage(selectedPreviewLanguage),
+        })
+        return
+      }
       utterance.onend = () => setIsPlayingClone(false)
       utterance.onerror = () => setIsPlayingClone(false)
       window.speechSynthesis.cancel()

@@ -156,14 +156,16 @@ export function AudioWaveform({
   }, [audio, isPlaying, barCount])
 
   return (
-    <div className={cn("flex items-end justify-center gap-1 sm:gap-1.5 h-16 sm:h-20 w-full px-1 sm:px-2", className)}>
+    <div
+      className={cn("grid min-w-0 items-end gap-px sm:gap-1 h-16 sm:h-20 w-full max-w-full overflow-hidden px-1 sm:px-2", className)}
+      style={{ gridTemplateColumns: `repeat(${barCount}, minmax(0, 1fr))` }}
+    >
       {heights.map((height, index) => (
         <div
           key={index}
           className={cn(
-            "flex-1 rounded-full transition-all duration-75",
-            isPlaying ? "bg-primary" : "bg-muted-foreground/30",
-            "min-w-[3px] sm:min-w-[4px]"
+            "min-w-0 w-full rounded-full transition-all duration-75",
+            isPlaying ? "bg-primary" : "bg-muted-foreground/30"
           )}
           style={{
             height: `${Math.max(15, height * 100)}%`,

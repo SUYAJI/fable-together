@@ -5,7 +5,7 @@ import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 
 export function ThemeToggleSlide() {
-  const { theme, setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
 
   // Prevent hydration mismatch
@@ -15,8 +15,7 @@ export function ThemeToggleSlide() {
 
   // Get current theme index (0: light, 1: dark)
   const themes = ['light', 'dark'] as const
-  // If theme is 'system', default to light for display
-  const currentTheme = mounted ? (theme === 'system' ? 'light' : (theme === 'dark' ? 'dark' : 'light')) : 'light'
+  const currentTheme = mounted && resolvedTheme === 'dark' ? 'dark' : 'light'
   const currentIndex = themes.indexOf(currentTheme as typeof themes[number])
 
   const handleClick = () => {

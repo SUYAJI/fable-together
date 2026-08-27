@@ -179,7 +179,7 @@
     font-weight: 600;
     line-height: 1.2;
     letter-spacing: -0.02em;
-    color: oklch(0.15 0.01 270);
+    color: inherit;
   }
   
   /* UI elements */
@@ -262,7 +262,7 @@
     @apply leading-relaxed;
     line-height: 1.7;
     font-weight: 400;
-    color: oklch(0.4 0.01 270);
+    color: inherit;
   }
   
   /* Enhanced readability for body text */
@@ -270,7 +270,7 @@
     font-size: 1.125rem;
     line-height: 1.7;
     font-weight: 400;
-    color: oklch(0.4 0.01 270);
+    color: var(--foreground);
   }
   
   .text-large {
@@ -283,7 +283,7 @@
     font-size: 0.875rem;
     line-height: 1.6;
     font-weight: 400;
-    color: oklch(0.5 0.01 270);
+    color: var(--muted-foreground);
   }
   
   .text-display {
@@ -560,7 +560,7 @@
   }
   
   .text-brand-purple {
-    color: oklch(0.52 0.20 285);
+    color: var(--primary);
   }
   
   .bg-brand-peach {

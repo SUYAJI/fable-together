@@ -67,7 +67,7 @@ export const DEMO_VOICES = [
   accent: "Neutral",
   age: "Adult",
   use_case: "Storytelling",
-  languages: ["en"],
+  languages: ["en", "es", "fr", "zh", "hi"],
   is_preset: true,
   is_cloned: false,
   provider: "demo",

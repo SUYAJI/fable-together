@@ -6,7 +6,7 @@ import { Play, Pause, Loader2 } from "lucide-react"
 import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES, getLanguageData, getLanguageFlag } from "@/lib/language-codes"
 import { AudioWaveform } from "@/components/audio-waveform"
 import { cn } from "@/lib/utils"
-import { createBrowserNarration } from "@/lib/browser-narration"
+import { createBrowserNarration, getBrowserNarrationUnavailableMessage } from "@/lib/browser-narration"
 import { isDemoMode } from "@/lib/app-mode"
 import { recordDemoAction } from "@/lib/services/demo/state"
 
@@ -38,6 +38,7 @@ export function VoiceCardPreview({
   const [isLoading, setIsLoading] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null)
+  const [previewMessage, setPreviewMessage] = useState<string | null>(null)
 
   // Cleanup blob URLs on unmount
   useEffect(() => {
@@ -58,7 +59,10 @@ export function VoiceCardPreview({
       audio.pause()
       setIsPlaying(false)
     }
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel()
     setAudioUrl(null)
+    setPreviewMessage(null)
+    setIsPlaying(false)
   }, [selectedLanguage])
 
   const handlePreview = useCallback(async () => {
@@ -92,10 +96,14 @@ export function VoiceCardPreview({
 
     // Generate new preview
     setIsLoading(true)
+    setPreviewMessage(null)
     try {
       if (isDemoMode()) {
-        const utterance = createBrowserNarration(getPreviewText(selectedLanguage, voiceName), 1, voiceId, selectedLanguage)
-        if (!utterance) throw new Error("Browser narration is unavailable")
+        const utterance = await createBrowserNarration(getPreviewText(selectedLanguage, voiceName), 1, voiceId, selectedLanguage)
+        if (!utterance) {
+          setPreviewMessage(getBrowserNarrationUnavailableMessage(selectedLanguage))
+          return
+        }
         utterance.onend = () => setIsPlaying(false)
         utterance.onerror = () => setIsPlaying(false)
         window.speechSynthesis.cancel()
@@ -123,8 +131,11 @@ export function VoiceCardPreview({
       if (response.headers.get("content-type")?.includes("application/json")) {
         const preview = await response.json()
         if (preview.playback === "browser-speech") {
-          const utterance = createBrowserNarration(preview.text, 1)
-          if (!utterance) throw new Error("Browser narration is unavailable")
+          const utterance = await createBrowserNarration(preview.text, 1, voiceId, selectedLanguage)
+          if (!utterance) {
+            setPreviewMessage(getBrowserNarrationUnavailableMessage(selectedLanguage))
+            return
+          }
           utterance.onend = () => setIsPlaying(false)
           utterance.onerror = () => setIsPlaying(false)
           window.speechSynthesis.cancel()
@@ -157,6 +168,7 @@ export function VoiceCardPreview({
       }
     } catch (error) {
       console.error("Error generating voice preview:", error)
+      setPreviewMessage("This voice preview is temporarily unavailable.")
     } finally {
       setIsLoading(false)
     }
@@ -199,7 +211,7 @@ export function VoiceCardPreview({
       </Select>
 
       {/* Waveform and Play Button */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex min-w-0 max-w-full items-center gap-2 overflow-hidden sm:gap-3">
         <button
           onClick={handlePreview}
           disabled={isLoading}
@@ -219,10 +231,15 @@ export function VoiceCardPreview({
             <Play className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           )}
         </button>
-        <div className="flex-1 min-w-0 w-full">
+        <div className="min-w-0 flex-1 overflow-hidden">
           <AudioWaveform audio={audio} isPlaying={isPlaying} barCount={32} className="w-full" />
         </div>
       </div>
+      {previewMessage && (
+        <p className="text-xs text-muted-foreground" role="status">
+          {previewMessage}
+        </p>
+      )}
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, Loader2 } from "lucide-react";
 import { LANGUAGE_NAMES } from "@/lib/language-codes";
-import { createBrowserNarration } from "@/lib/browser-narration";
+import { createBrowserNarration, getBrowserNarrationUnavailableMessage } from "@/lib/browser-narration";
 
 interface VoicePreviewProps {
   voiceId: string;
@@ -42,6 +42,7 @@ export const VoicePreview = memo(function VoicePreview({
   const [isLoading, setIsLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [previewMessage, setPreviewMessage] = useState<string | null>(null);
 
   // Cleanup blob URLs on unmount
   useEffect(() => {
@@ -55,6 +56,12 @@ export const VoicePreview = memo(function VoicePreview({
       }
     };
   }, [audioUrl, audio]);
+
+  useEffect(() => {
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    setIsPlaying(false);
+    setPreviewMessage(null);
+  }, [language]);
 
   const handlePreview = useCallback(async () => {
     if (isPlaying) {
@@ -81,6 +88,7 @@ export const VoicePreview = memo(function VoicePreview({
 
     // Generate new preview
     setIsLoading(true);
+    setPreviewMessage(null);
     try {
       const response = await fetch("/api/voices/preview", {
         method: "POST",
@@ -102,8 +110,11 @@ export const VoicePreview = memo(function VoicePreview({
       if (response.headers.get("content-type")?.includes("application/json")) {
         const preview = await response.json();
         if (preview.playback === "browser-speech") {
-          const utterance = createBrowserNarration(preview.text, 1);
-          if (!utterance) throw new Error("Browser narration is unavailable");
+          const utterance = await createBrowserNarration(preview.text, 1, voiceId, language);
+          if (!utterance) {
+            setPreviewMessage(getBrowserNarrationUnavailableMessage(language));
+            return;
+          }
           utterance.onend = () => setIsPlaying(false);
           utterance.onerror = () => setIsPlaying(false);
           window.speechSynthesis.cancel();
@@ -148,7 +159,7 @@ export const VoicePreview = memo(function VoicePreview({
       }
     } catch (error) {
       console.error("Error generating voice preview:", error);
-      alert(error instanceof Error ? error.message : "Failed to generate voice preview. Please try again.");
+      setPreviewMessage("This voice preview is temporarily unavailable.");
     } finally {
       setIsLoading(false);
     }
@@ -161,24 +172,27 @@ export const VoicePreview = memo(function VoicePreview({
     : `Preview (${getLanguageLabel(language)})`;
 
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={handlePreview}
-      disabled={isLoading}
-      className={`gap-1.5 text-xs sm:text-sm ${className || ""}`}
-      title={LANGUAGE_NAMES[language] || language}
-    >
-      {isLoading ? (
-        <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin flex-shrink-0" />
-      ) : isPlaying ? (
-        <Pause className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-      ) : (
-        <Play className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-      )}
-      <span className="whitespace-normal text-left">
-        {buttonText}
-      </span>
-    </Button>
+    <div className="space-y-2">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handlePreview}
+        disabled={isLoading}
+        className={`gap-1.5 text-xs sm:text-sm ${className || ""}`}
+        title={LANGUAGE_NAMES[language] || language}
+      >
+        {isLoading ? (
+          <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin flex-shrink-0" />
+        ) : isPlaying ? (
+          <Pause className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+        ) : (
+          <Play className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+        )}
+        <span className="whitespace-normal text-left">
+          {buttonText}
+        </span>
+      </Button>
+      {previewMessage && <p className="text-xs text-muted-foreground" role="status">{previewMessage}</p>}
+    </div>
   );
 });
