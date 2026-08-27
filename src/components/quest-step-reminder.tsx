@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { X, ArrowRight, Sparkles } from "lucide-react"
+import { X, ArrowRight } from "lucide-react"
 import { QuestPathTask } from "@/lib/quest-path-tasks"
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"

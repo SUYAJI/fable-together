@@ -1,20 +1,3 @@
-/**
- * Voices Page Component
- * 
- * Voice Library page displaying available voices with:
- * - Preset voices (6 curated voices)
- * - User's cloned voices
- * - Voice preview functionality
- * - Voice management (delete, update)
- * - Responsive grid layout
- * 
- * Features:
- * - Mobile-responsive voice cards
- * - Voice preview in multiple languages
- * - Quest integration for voice cloning
- * - Voice filtering and organization
- */
-
 "use client"
 
 import { AppSidebar } from "@/components/app-sidebar"
@@ -38,7 +21,6 @@ import { VoiceCardPreview } from "@/components/voice-card-preview"
 import { filterCuratedVoices } from "@/lib/voice-filters"
 import { getVoiceBorderGradient } from "@/lib/voice-colors"
 import { cn } from "@/lib/utils"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { isDemoMode } from "@/lib/app-mode"
 import { deleteDemoVoice, getDemoVoices, recordDemoAction, subscribeDemoState } from "@/lib/services/demo/state"
@@ -186,7 +168,7 @@ export default function VoicesPage() {
       deleteDemoVoice()
       setVoices(getDemoVoices())
       setDeletingVoiceId(null)
-      toast({ title: "Demo Voice deleted", description: "The local simulated voice was removed and the preferred voice was restored if needed." })
+      toast({ title: "Demo Voice deleted", description: "If it was selected, Warm Storyteller is active again." })
       return
     }
     

@@ -50,8 +50,8 @@ let memoryState: DemoState | null = null
 const questDefinitions: Omit<DemoQuest, "progress" | "status" | "completed_at">[] = [
   { id: "story_opened", title: "Open sample story", description: "Explore a story from the demo library.", credits_reward: 10, progress_max: 1 },
   { id: "voice_previewed", title: "Preview a voice", description: "Listen to a browser speech preview.", credits_reward: 10, progress_max: 1 },
-  { id: "narration_created", title: "Create narration", description: "Start a deterministic browser narration.", credits_reward: 20, progress_max: 1 },
-  { id: "demo_voice_created", title: "Create Demo Voice", description: "Complete the local voice-clone simulation.", credits_reward: 20, progress_max: 1 },
+  { id: "narration_created", title: "Create narration", description: "Listen to a story with your selected voice.", credits_reward: 20, progress_max: 1 },
+  { id: "demo_voice_created", title: "Create Demo Voice", description: "Create a simulated voice for the story library.", credits_reward: 20, progress_max: 1 },
 ]
 
 function defaults(): DemoState {
@@ -95,7 +95,7 @@ export function getDemoState(storage: StorageLike | null = browserStorage()): De
         }
       }
     }
-  } catch { /* fall back to deterministic defaults */ }
+  } catch { /* use the default demo state if stored data cannot be read */ }
   const state = defaults()
   try { storage.setItem(DEMO_STATE_KEY, JSON.stringify(state)) } catch { memoryState = state }
   return state

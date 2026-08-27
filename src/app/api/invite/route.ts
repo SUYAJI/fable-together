@@ -75,14 +75,15 @@ export async function POST(request: Request) {
       )
     }
 
-    // Get site URL for redirect
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_VERCEL_URL 
-      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` 
-      : "https://app.fabletogether.com"
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (process.env.NEXT_PUBLIC_VERCEL_URL
+        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+        : new URL(request.url).origin)
 
     // Send invitation email using Supabase's inviteUserByEmail
     // This uses Supabase's email templates configured in the dashboard
-    const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(
+    const { error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(
       email,
       {
         redirectTo: `${siteUrl}/register`,
@@ -100,14 +101,6 @@ export async function POST(request: Request) {
         { status: 500 }
       )
     }
-
-    // TODO: Track referral in database for credit rewards
-    // You can create a referrals table to track:
-    // - inviter_user_id
-    // - invitee_email
-    // - invited_at
-    // - signed_up_at (update when they register)
-    // - credits_awarded
 
     return NextResponse.json({
       success: true,

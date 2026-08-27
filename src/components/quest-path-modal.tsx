@@ -183,7 +183,7 @@ export function QuestPathModal({
               Path Complete! 🎉
             </DrawerTitle>
             <DrawerDescription className="text-base sm:text-lg mb-6 sm:mb-8 max-w-md">
-              Congratulations! You've completed the {path.name} path and earned tokens.
+              Congratulations! You&apos;ve completed the {path.name} path and earned tokens.
             </DrawerDescription>
             <div className="glass-card border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 rounded-xl p-6 sm:p-8 mb-6 sm:mb-8 w-full max-w-md">
               <div className="text-4xl sm:text-5xl font-bold text-green-600 dark:text-green-400 mb-2">

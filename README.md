@@ -1,19 +1,35 @@
 # Fable Together
 
-Fable Together is a storytelling application combining story creation, narration, voice tools, quests, and a shared story library.
+Fable Together was designed around personalized storytelling, selectable narration voices, story discovery, and family-oriented voice experiences.
 
-This repository is a sanitized demo adaptation of the original application. The current baseline preserves the existing product implementation while paid and production service dependencies are converted to deterministic demo services in subsequent development.
+## Interactive Demo
 
-## Application modes
+This repository contains a self-contained reconstruction of the original product experience for portfolio use. Accounts and activity are fictional, voice cloning is simulated, narration uses browser speech, and translations are stored with the sample stories. Credits, quests, notifications, and community activity are demonstration state saved in the browser.
 
-Demo Mode is enabled with `NEXT_PUBLIC_DEMO_MODE=true` and is also the safe default when Supabase public credentials are absent. It supplies a deterministic user, profile, library counts, credits, quests, voices, search results, and notifications without contacting production services.
+## Running Locally
 
-Existing pages consume typed application services from `src/lib/services`. Client identity and profile access switch between demo and production implementations there. Existing API routes provide the server boundary and select deterministic demo responses before reaching Supabase, ElevenLabs, or translation providers. Features whose demo implementation belongs to a later iteration return an explicit, truthful Demo Mode response.
+Install the dependencies and start the development server:
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). Demo Mode is the default and does not require API credentials.
+
+## Verification
+
+```bash
+npm run test:demo
+npx tsc --noEmit
+npm run lint
+npm run build
+```
+
+## Technical Overview
+
+The showcase uses Next.js, React, and TypeScript. Its interactive state is stored locally in the browser, narration uses the Web Speech API, and story, voice, translation, and activity data come from bundled fixtures.
 
 ## Provenance
 
-- Project: Fable Together
-- Source branch: `mvp-beta`
-- Source commit: `5c4b0d9`
-- Source context: December 2025
-- This repository begins the sanitized public-demo adaptation. The original private repository remains the historical record.
+This is a sanitized reconstruction of the original private Fable Together project. It preserves the product's page and component structure while replacing production services with local demo behavior.

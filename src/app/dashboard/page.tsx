@@ -1,21 +1,3 @@
-/**
- * Dashboard Page Component
- * 
- * Main dashboard homepage displaying:
- * - Welcome message with user's name
- * - Quest cards with completion status
- * - Example stories grid
- * - Quick action cards
- * - User statistics and activity
- * 
- * Features:
- * - Responsive grid layouts (1 column mobile, 2-3 columns desktop)
- * - Real-time quest status updates
- * - Credit balance display
- * - Feedback modal integration
- * - Smooth fade-in animations
- */
-
 "use client"
 
 import { useEffect, useState } from "react"
@@ -28,16 +10,14 @@ import { AppHeader } from "@/components/app-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Play, Heart, Share2, Users, Target, TrendingUp, Clock, Trophy, CheckCircle2, Mic, BookOpen, Headphones, Star, ShoppingCart, Sparkles, ChevronRight } from "lucide-react"
+import { Play, Share2, Users, Mic, BookOpen, Star, ShoppingCart } from "lucide-react"
 import { getClientServices } from "@/lib/services/client"
 import { DashboardContentWrapper } from "@/components/dashboard-content-wrapper"
 import { DashboardNavigationProgress } from "@/components/dashboard-navigation-progress"
 import { NewsTicker } from "@/components/news-ticker"
 import { DashboardTutorial } from "@/components/dashboard-tutorial"
 import { useToast } from "@/hooks/use-toast"
-import { refreshCreditsDisplay } from "@/components/credits-display"
 import { AnimatedCounter } from "@/components/animated-counter"
-import { PlaceholderModal } from "@/components/placeholder-modal"
 import { FeedbackModal } from "@/components/feedback-modal"
 import { isDemoMode } from "@/lib/app-mode"
 import { getDemoState, getDemoVoices, subscribeDemoState } from "@/lib/services/demo/state"
@@ -49,10 +29,6 @@ interface UserProfile {
   first_name?: string
 }
 
-/**
- * Example stories available in the Story Library
- * These are pre-created stories that all users can narrate
- */
 const exampleStories = [
   {
     id: 1,
@@ -60,7 +36,7 @@ const exampleStories = [
     category: "Adventure",
     duration: "10 min",
     rating: 4.6,
-    thumbnail: "https://images.unsplash.com/photo-1464207687429-7505649dae38?w=600&h=400&fit=crop&q=80",
+    thumbnail: "/adventure-story-illustration.jpg",
     isExample: true,
     isPurchased: true,
     likes: 89,
@@ -71,7 +47,7 @@ const exampleStories = [
         id: "sarah-j",
         name: "Sarah Johnson",
         role: "Author" as const,
-        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&q=80",
+        avatar: "/emily-avatar.jpg",
         bio: "Award-winning children's author with 15+ published stories",
       },
     ],
@@ -82,7 +58,7 @@ const exampleStories = [
     category: "Mystery",
     duration: "12 min",
     rating: 4.8,
-    thumbnail: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=600&h=400&fit=crop&q=80",
+    thumbnail: "/mystery-story-illustration.jpg",
     isExample: true,
     isPurchased: true,
     likes: 67,
@@ -93,7 +69,7 @@ const exampleStories = [
         id: "alex-c",
         name: "Alex Chen",
         role: "Author" as const,
-        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&q=80",
+        avatar: "/uncle-lou-avatar.jpg",
         bio: "Mystery writer with a passion for puzzles and adventure",
       },
     ],
@@ -104,7 +80,7 @@ const exampleStories = [
     category: "Fantasy",
     duration: "15 min",
     rating: 4.9,
-    thumbnail: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=400&fit=crop&q=80",
+    thumbnail: "/enchanted-forest-story.jpg",
     isExample: true,
     isPurchased: true,
     likes: 124,
@@ -115,7 +91,7 @@ const exampleStories = [
         id: "luna-m",
         name: "Luna Martinez",
         role: "Author" as const,
-        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&q=80",
+        avatar: "/dr-anna-avatar.jpg",
         bio: "Fantasy author who believes in the magic of nature",
       },
     ],
@@ -157,95 +133,22 @@ const familyActivity = [
   },
 ]
 
-interface Quest {
-  id: string
-  slug?: string
-  title: string
-  description: string
-  credits_reward: number
-  status: "not_started" | "in_progress" | "completed"
-  progress: number
-  progress_max: number
-}
-
 export default function DashboardPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [onboardingQuests, setOnboardingQuests] = useState<Quest[]>([])
-  const [questsLoading, setQuestsLoading] = useState(true)
   const [creditsRemaining, setCreditsRemaining] = useState<number>(150)
   const [storiesCount, setStoriesCount] = useState<number>(0)
   const [voicesCount, setVoicesCount] = useState<number>(0)
-  const [placeholderModalOpen, setPlaceholderModalOpen] = useState(false)
-  const [placeholderModalTitle, setPlaceholderModalTitle] = useState("")
-  const [placeholderModalDescription, setPlaceholderModalDescription] = useState("")
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false)
-  const [resettingQuest, setResettingQuest] = useState(false)
-  
-  const openPlaceholderModal = (title: string, description?: string) => {
-    setPlaceholderModalTitle(title)
-    setPlaceholderModalDescription(description || "")
-    setPlaceholderModalOpen(true)
-  }
-
-  const handleResetQuest = async (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    if (!onboardingQuests[0] || resettingQuest) return
-
-    try {
-      setResettingQuest(true)
-      const response = await fetch("/api/quests/reset", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          questId: onboardingQuests[0].id || onboardingQuests[0].slug,
-        }),
-      })
-
-      if (response.ok) {
-        toast({
-          title: "Quest Reset",
-          description: "Quest has been reset. You can complete it again, but you won't earn credits again.",
-        })
-        // Refresh quest data
-        const questResponse = await fetch("/api/quests/list")
-        if (questResponse.ok) {
-          const questData = await questResponse.json()
-          const allQuests = questData.quests || []
-          const exploreQuest = allQuests.find((q: Quest) => q.slug === "explore_platform" || q.id === "explore_platform")
-          if (exploreQuest) {
-            setOnboardingQuests([exploreQuest])
-          }
-        }
-        window.dispatchEvent(new CustomEvent("quest-refresh"))
-      } else {
-        throw new Error("Failed to reset quest")
-      }
-    } catch (error) {
-      console.error("Error resetting quest:", error)
-      toast({
-        title: "Error",
-        description: "Failed to reset quest. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setResettingQuest(false)
-    }
-  }
-
   // Share story functionality - uses Web Share API when available, falls back to clipboard
   const handleShareStory = async (storyTitle: string, storyId: number, e: React.MouseEvent) => {
     e.stopPropagation()
     e.preventDefault()
     
     // Build share URL that links directly to the story
-    const shareUrl = typeof window !== "undefined" 
-      ? `${window.location.origin}/stories?story=${storyId}` 
-      : `https://app.fabletogether.com/stories?story=${storyId}`
+    const shareUrl = `${window.location.origin}/stories?story=${storyId}`
     
     const shareData = {
       title: `Check out "${storyTitle}" on Fable Together`,
@@ -279,7 +182,7 @@ export default function DashboardPage() {
             title: "Link copied!",
             description: "Story link has been copied to your clipboard.",
           })
-        } catch (clipboardError) {
+        } catch {
           toast({
             title: "Share failed",
             description: "Unable to share. Please try again.",
@@ -299,8 +202,6 @@ export default function DashboardPage() {
         setCreditsRemaining(demo.credits.available)
         setStoriesCount(3)
         setVoicesCount(getDemoVoices().length)
-        setOnboardingQuests(demo.quests)
-        setQuestsLoading(false)
         setLoading(false)
       }
       syncDemoDashboard()
@@ -419,32 +320,6 @@ export default function DashboardPage() {
     return () => clearInterval(creditsInterval)
   }, [])
 
-  // Fetch the Explore Platform quest
-  useEffect(() => {
-    if (isDemoMode()) return
-    const fetchQuest = async () => {
-      try {
-        setQuestsLoading(true)
-        const response = await fetch("/api/quests/list")
-        if (response.ok) {
-          const data = await response.json()
-          const allQuests = data.quests || []
-          // Find the explore_platform quest
-          const exploreQuest = allQuests.find((q: Quest) => q.slug === "explore_platform" || q.id === "explore_platform")
-          if (exploreQuest) {
-            setOnboardingQuests([exploreQuest])
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching quest:", error)
-      } finally {
-        setQuestsLoading(false)
-      }
-    }
-
-    fetchQuest()
-  }, [])
-
   if (loading) {
     return (
       <div className="flex h-screen">
@@ -485,13 +360,15 @@ export default function DashboardPage() {
                 <h1 className="text-4xl sm:text-5xl font-bold">
                   Welcome, {user?.first_name || user?.display_name?.split(' ')[0] || 'User'}!
                 </h1>
-                <Badge className="bg-orange-500/90 text-white border-orange-400 font-semibold text-xs sm:text-sm px-2 sm:px-3 py-0.5 sm:py-1" aria-label="Beta version">
-                  BETA
+                <Badge className="bg-orange-500/90 text-white border-orange-400 font-semibold text-xs sm:text-sm px-2 sm:px-3 py-0.5 sm:py-1" aria-label={isDemoMode() ? "Interactive demo" : "Beta version"}>
+                  {isDemoMode() ? "INTERACTIVE DEMO" : "BETA"}
                 </Badge>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <p className="text-lg text-muted-foreground max-w-3xl">
-                  Fable Together is currently in beta. We&apos;re actively working on improving features and adding new functionality. Your experience helps shape the future of our platform!
+                  {isDemoMode()
+                    ? "Explore stories, narration voices, translations, and the family activity that shaped the original Fable Together experience."
+                    : "Fable Together is currently in beta. We&apos;re actively working on improving features and adding new functionality."}
                 </p>
                 <Button 
                   size="lg" 
@@ -586,7 +463,7 @@ export default function DashboardPage() {
                                 alt={`${story.title} story cover image`} 
                                 fill
                                 className="object-cover"
-                                loading="lazy"
+                                priority
                                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                               />
                             </div>
@@ -735,12 +612,6 @@ export default function DashboardPage() {
             </DashboardContentWrapper>
         </main>
         <DashboardTutorial />
-        <PlaceholderModal 
-          open={placeholderModalOpen}
-          onOpenChange={setPlaceholderModalOpen}
-          title={placeholderModalTitle}
-          description={placeholderModalDescription}
-        />
         <FeedbackModal 
           open={feedbackModalOpen}
           onOpenChange={setFeedbackModalOpen}

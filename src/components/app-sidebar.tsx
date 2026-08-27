@@ -1,25 +1,8 @@
-/**
- * Application Sidebar Component
- * 
- * Main navigation sidebar for the dashboard with:
- * - Collapsible navigation menu
- * - Story and voice library counts
- * - Community section
- * - Mobile-responsive sheet overlay
- * - Active route highlighting
- * 
- * Features:
- * - Desktop: Fixed sidebar with collapse/expand
- * - Mobile: Sheet overlay triggered by hamburger menu
- * - Cached library counts for performance
- * - Smooth transitions and animations
- */
-
 "use client"
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, BookOpen, Mic, Settings, Sparkles, Menu, Users, Trophy, Share2, HelpCircle, ChevronLeft, ChevronRight } from "lucide-react"
+import { Home, BookOpen, Mic, Settings, Menu, Users, Trophy, Share2, HelpCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -32,9 +15,6 @@ import { useEffect, useState } from "react"
 import { isDemoMode } from "@/lib/app-mode"
 import { getDemoCounts, getDemoState, setDemoSidebarCollapsed, subscribeDemoState } from "@/lib/services/demo/state"
 
-/**
- * Main navigation items for the sidebar
- */
 const navigation = [
   { name: "Home", href: "/dashboard", icon: Home },
   { name: "Story Library", href: "/stories", icon: BookOpen },
@@ -174,7 +154,7 @@ function SidebarContent({ isCollapsed = false }: { isCollapsed?: boolean }) {
               isCollapsed ? "text-[8px] px-1 py-0 h-4 leading-none" : ""
             )}
           >
-            BETA
+            {isDemoMode() ? "DEMO" : "BETA"}
           </Badge>
         </div>
       </div>
@@ -258,7 +238,7 @@ function SidebarContent({ isCollapsed = false }: { isCollapsed?: boolean }) {
 
       {/* Theme Toggle for Mobile */}
       {!isCollapsed && (
-        <div className="border-t bg-muted/30 p-4 md:hidden">
+        <div className="border-t bg-muted/30 p-4 lg:hidden">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Theme</span>
             <ThemeToggle />
@@ -284,8 +264,7 @@ function SidebarContent({ isCollapsed = false }: { isCollapsed?: boolean }) {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="right">
-                  <p>Invite Friends</p>
-                  <p className="text-xs opacity-75">Earn 50 tokens</p>
+                  <p>{isDemoMode() ? "Share Demo" : "Invite Friends"}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -295,10 +274,12 @@ function SidebarContent({ isCollapsed = false }: { isCollapsed?: boolean }) {
             <div className="card-elevated p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Share2 className="h-4 w-4 text-primary" aria-hidden="true" />
-                <h3 className="text-sm font-semibold">Invite Friends</h3>
+                <h3 className="text-sm font-semibold">{isDemoMode() ? "Share Demo" : "Invite Friends"}</h3>
               </div>
               <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-                Share Fable Together with friends and family. Help them discover the magic of AI-powered storytelling.
+                {isDemoMode()
+                  ? "Copy a link to this interactive reconstruction."
+                  : "Share Fable Together with friends and family."}
               </p>
               <Button
                 variant="outline"
@@ -308,13 +289,13 @@ function SidebarContent({ isCollapsed = false }: { isCollapsed?: boolean }) {
                 aria-label="Open invite friends modal"
               >
                 <Share2 className="h-3 w-3 mr-1.5" aria-hidden="true" />
-                <span>Invite Someone</span>
+                <span>{isDemoMode() ? "Share Demo" : "Invite Someone"}</span>
               </Button>
-              <div className="p-2 rounded-lg bg-primary/5 border border-primary/10">
-                <p className="text-xs text-muted-foreground text-center">
-                  Earn <span className="font-semibold text-primary">50 tokens</span> when they sign up
+              {isDemoMode() && (
+                <p className="text-center text-xs text-muted-foreground">
+                  No invitation or email is sent.
                 </p>
-              </div>
+              )}
             </div>
           </div>
         )}
@@ -343,7 +324,7 @@ export function MobileSidebarTrigger() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden" aria-label="Toggle mobile sidebar">
+        <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Toggle mobile sidebar">
           <Menu className="h-5 w-5" aria-hidden="true" />
         </Button>
       </SheetTrigger>

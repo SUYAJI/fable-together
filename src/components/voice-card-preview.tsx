@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Play, Pause, Loader2 } from "lucide-react"
 import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES, getLanguageData, getLanguageFlag } from "@/lib/language-codes"

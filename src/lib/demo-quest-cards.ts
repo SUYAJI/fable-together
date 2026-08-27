@@ -23,7 +23,7 @@ export const DEMO_QUEST_CARDS: SimpleQuest[] = [
   {
     id: "narration_created",
     title: "Create narration",
-    description: "Start a deterministic browser narration.",
+    description: "Listen to a story with your selected voice.",
     icon: Mic,
     route: "/stories?story=1",
     actionText: "Create Narration",
@@ -32,7 +32,7 @@ export const DEMO_QUEST_CARDS: SimpleQuest[] = [
   {
     id: "demo_voice_created",
     title: "Create Demo Voice",
-    description: "Complete the local voice-clone simulation.",
+    description: "Create a simulated voice for the story library.",
     icon: Sparkles,
     route: "/voices/clone",
     actionText: "Create Demo Voice",

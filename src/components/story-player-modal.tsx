@@ -125,7 +125,7 @@ export function StoryPlayerModal({ story, narration, open, onOpenChange }: Story
 
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           <div className="story-thumbnail relative overflow-hidden rounded-xl h-64">
-            <Image src={story.thumbnail || "/placeholder.svg"} alt={story.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 768px" />
+            <Image src={story.thumbnail || "/placeholder.svg"} alt={story.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 768px" priority />
           </div>
 
           <section className="space-y-3" aria-label="Story player controls">

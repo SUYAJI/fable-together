@@ -26,10 +26,8 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log error to monitoring service in production
     if (process.env.NODE_ENV === "production") {
       console.error("Error caught by boundary:", error, errorInfo)
-      // TODO: Send to error monitoring service (e.g., Sentry)
     }
   }
 

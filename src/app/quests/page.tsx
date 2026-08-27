@@ -6,8 +6,6 @@ import { SimpleQuestCard } from "@/components/simple-quest-card"
 import { SIMPLE_QUESTS } from "@/lib/simple-quests"
 import { DEMO_QUEST_CARDS } from "@/lib/demo-quest-cards"
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useToast } from "@/hooks/use-toast"
 import { isDemoMode } from "@/lib/app-mode"
 import { getDemoState, subscribeDemoState } from "@/lib/services/demo/state"
 
@@ -19,8 +17,6 @@ interface QuestStatus {
 }
 
 export default function QuestsPage() {
-  const router = useRouter()
-  const { toast } = useToast()
   const [questStatuses, setQuestStatuses] = useState<QuestStatus[]>([])
   const [initialLoading, setInitialLoading] = useState(true)
 

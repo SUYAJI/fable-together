@@ -14,7 +14,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Database = any; // TODO: Replace with generated types from Supabase CLI
+export type Database = any; // Production schema types are not included in this sanitized showcase.
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

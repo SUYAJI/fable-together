@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { name, email, feedback } = body
+    const { feedback } = body
 
     if (!feedback || !feedback.trim()) {
       return NextResponse.json(
@@ -105,45 +105,6 @@ export async function POST(request: Request) {
         }
       }
     }
-
-    // Prepare feedback data
-    const feedbackData = {
-      user_id: user?.id || null,
-      user_name: name || user?.user_metadata?.first_name || user?.user_metadata?.display_name || null,
-      user_email: email || user?.email || null,
-      feedback: feedback.trim(),
-      submitted_at: new Date().toISOString(),
-      is_first_submission: isFirstFeedback,
-      credits_awarded: creditsAwarded,
-    }
-
-    // TODO: Send email to Fable Together
-    // For now, we'll log it and you can configure email sending later
-    // You can use services like Resend, SendGrid, or Nodemailer
-    // Feedback received and processed
-
-    // Option 1: Store in database (if you have a feedback table)
-    // const { error } = await supabase
-    //   .from("feedback")
-    //   .insert(feedbackData)
-
-    // Option 2: Send email using a service like Resend
-    // Example with Resend:
-    // const resend = new Resend(process.env.RESEND_API_KEY)
-    // await resend.emails.send({
-    //   from: "feedback@fabletogether.com",
-    //   to: "hello@fabletogether.com",
-    //   subject: `Feedback from ${feedbackData.user_name || "Anonymous"}`,
-    //   html: `
-    //     <h2>New Feedback Submission</h2>
-    //     <p><strong>Name:</strong> ${feedbackData.user_name || "Not provided"}</p>
-    //     <p><strong>Email:</strong> ${feedbackData.user_email || "Not provided"}</p>
-    //     <p><strong>User ID:</strong> ${feedbackData.user_id || "Not authenticated"}</p>
-    //     <p><strong>Feedback:</strong></p>
-    //     <p>${feedbackData.feedback}</p>
-    //     <p><strong>Submitted:</strong> ${feedbackData.submitted_at}</p>
-    //   `,
-    // })
 
     return NextResponse.json({
       success: true,

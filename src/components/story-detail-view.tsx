@@ -1,25 +1,10 @@
-/**
- * Story Detail View Component
- * 
- * Displays detailed information about a story including:
- * - Story metadata (title, category, rating, duration)
- * - Creator information with avatars
- * - Story content and narration controls
- * - Responsive layout for all devices
- * 
- * Features:
- * - Two-column layout on desktop, single column on mobile
- * - Back navigation to story library
- * - Integration with story narration controls
- */
-
 "use client"
 
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { ArrowLeft, Star } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { StoryNarrationControls } from "@/components/story-narration-controls"
 import Image from "next/image"
 import { useEffect } from "react"

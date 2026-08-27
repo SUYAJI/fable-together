@@ -96,7 +96,16 @@ interface GenerationTask {
   voiceName: string;
 }
 
-// Note: Now we only use one default voice for all languages
+interface ElevenLabsVoiceResponse {
+  voices?: Array<{
+    voice_id: string
+    name: string
+    labels?: {
+      gender?: string
+      languages?: string[]
+    }
+  }>
+}
 
 async function getDefaultVoice() {
   // Fetch all voices from ElevenLabs
@@ -110,18 +119,17 @@ async function getDefaultVoice() {
     throw new Error(`Failed to fetch voices: ${response.statusText}`);
   }
 
-  const data = await response.json();
-  const voices = data.voices || [];
+  const data = (await response.json()) as ElevenLabsVoiceResponse;
+  const voices = data.voices ?? [];
 
   // Filter to curated voices (6 total: 3 male, 3 female, 3 multilingual)
   const curated = filterCuratedVoices(
-    voices.map((voice: any) => ({
+    voices.map((voice) => ({
+      ...voice,
       id: voice.voice_id,
-      name: voice.name,
       gender: voice.labels?.gender || 'Neutral',
       languages: voice.labels?.languages || ['en'],
       is_preset: true,
-      ...voice,
     }))
   );
 
@@ -136,7 +144,7 @@ async function getDefaultVoice() {
   };
 }
 
-async function getStoryText(storyId: number, language: string): Promise<string | null> {
+async function getStoryText(storyId: number): Promise<string | null> {
   // Find story from hardcoded data
   const story = STORIES.find(s => s.id === storyId);
   
@@ -158,8 +166,6 @@ async function getStoryText(storyId: number, language: string): Promise<string |
 
 async function checkIfAudioExists(storyId: number, voiceId: string, language: string): Promise<boolean> {
   // Structure: {voiceId}/stories/{storyId}/{language}.mp3
-  const path = `${voiceId}/stories/${storyId}/${language}.mp3`;
-  
   const { data, error } = await supabase.storage
     .from('audio')
     .list(`${voiceId}/stories/${storyId}`, {
@@ -190,7 +196,7 @@ async function generateAndUploadAudio(
   // Upload to Supabase Storage
   // Structure: {voiceId}/stories/{storyId}/{language}.mp3
   const path = `${voiceId}/stories/${storyId}/${language}.mp3`;
-  const { data: upload, error: uploadError } = await supabase.storage
+  const { error: uploadError } = await supabase.storage
     .from('audio')
     .upload(path, audioBuffer, {
       contentType: 'audio/mpeg',
@@ -220,7 +226,7 @@ async function generateAudioForTask(task: GenerationTask): Promise<void> {
     }
 
     // Get story text (translated if needed)
-    const text = await getStoryText(storyId, language);
+    const text = await getStoryText(storyId);
     if (!text) {
       console.error(`  ✗ No text found for Story ${storyId} in ${language}`);
       return;
@@ -229,8 +235,9 @@ async function generateAudioForTask(task: GenerationTask): Promise<void> {
     // Generate and upload
     await generateAndUploadAudio(storyId, voiceId, language, text);
     console.log(`  ✓ Generated: Story ${storyId} | ${voiceName} | ${language}`);
-  } catch (error: any) {
-    console.error(`  ✗ Failed: Story ${storyId} | ${voiceName} | ${language}: ${error.message}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`  ✗ Failed: Story ${storyId} | ${voiceName} | ${language}: ${message}`);
   }
 }
 

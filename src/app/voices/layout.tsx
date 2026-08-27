@@ -2,9 +2,9 @@ import { generatePageMetadata } from "@/lib/metadata"
 
 export const metadata = generatePageMetadata({
   title: "Voice Library",
-  description: "Discover and manage voices for your stories. Browse preset voices and your cloned voices. Preview how they sound before using them.",
+  description: "Preview and choose narration voices for stories in Fable Together.",
   path: "/voices",
-  keywords: ["voices", "voice library", "voice cloning", "text to speech", "AI voices"],
+  keywords: ["voices", "voice library", "story narration", "browser speech"],
 })
 
 export default function VoicesLayout({

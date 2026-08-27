@@ -101,9 +101,6 @@ export async function POST(request: Request) {
     
     // Check if this is an empty test request
     if (!data || Object.keys(data).length === 0) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log("Empty test request received");
-      }
       return NextResponse.json({ 
         success: true,
         message: "Webhook endpoint is accessible",
@@ -120,9 +117,6 @@ export async function POST(request: Request) {
     let phone: string | null = null;
     let role: string | null = null;
     let providerType: string | null = null;
-    
-    // Log all available fields for debugging
-      // Extract data from questions array
     
     // Check if we have submission data with questions
     if (data.submission && data.submission.questions) {
@@ -185,32 +179,9 @@ export async function POST(request: Request) {
       providerType = (dataRecord.providerType || dataRecord.provider_type) as string | null
     }
     
-    // Log extracted values in development only
-    if (process.env.NODE_ENV === 'development') {
-    // Log extracted values in development only
-    if (process.env.NODE_ENV === 'development') {
-      console.log("=== Extracted Values ===");
-      console.log("Email:", email);
-      console.log("First Name:", firstName, firstName ? "✅" : "❌ MISSING");
-      console.log("Last Name:", lastName, lastName ? "✅" : "❌ MISSING");
-      console.log("Phone:", phone, phone ? "✅" : "❌ MISSING");
-      console.log("Role:", role, role ? "✅" : "❌ MISSING");
-      console.log("Provider Type:", providerType, providerType ? "✅" : "❌ MISSING");
-    }
-    }
-    
-    // If first/last name are missing, log a warning
-    if (!firstName && !lastName) {
-      console.warn("⚠️ WARNING: First and Last name are both missing! Check Fillout form field names.");
-    }
-    
     if (!email) {
-      console.error("No email found in webhook data. Available keys:", Object.keys(data));
-      
       // Check if this is a test webhook with null values
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const isTestWebhook = data.submission && data.submission.questions && 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data.submission.questions.every((q: FilloutQuestion) => q.value === null);
       
       if (isTestWebhook || Object.keys(data).length === 0) {

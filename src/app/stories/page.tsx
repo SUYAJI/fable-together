@@ -1,44 +1,24 @@
-/**
- * Stories Page Component
- * 
- * Story Library page displaying example stories with:
- * - Grid/list view toggle
- * - Category filtering
- * - Story detail view
- * - Responsive layouts (1 column mobile, 2-3 columns desktop)
- * 
- * Features:
- * - Mobile-first responsive design
- * - Story filtering and search
- * - Inline story detail view
- * - Audio playback integration
- */
-
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { AppHeader } from "@/components/app-header"
 import { DashboardContentWrapper } from "@/components/dashboard-content-wrapper"
 import { DashboardTutorial } from "@/components/dashboard-tutorial"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Play, Star, ShoppingCart, Grid3x3, Share2 } from "lucide-react"
+import { Play, ShoppingCart, Share2 } from "lucide-react"
 import { StoryDetailView } from "@/components/story-detail-view"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
 import { DEMO_STORIES as stories } from "@/lib/services/demo/story-repository"
 
-type StoryFilter = "all" | "example" | "purchased" | "adventure" | "mystery" | "fantasy"
-
 export default function StoriesPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
   const [selectedStory, setSelectedStory] = useState<(typeof stories)[0] | null>(null)
-  const [activeFilter, setActiveFilter] = useState<StoryFilter>("all")
 
   // Handle story query parameter from shared links
   useEffect(() => {
@@ -60,9 +40,7 @@ export default function StoriesPage() {
     e.stopPropagation()
     e.preventDefault()
     
-    const shareUrl = typeof window !== "undefined" 
-      ? `${window.location.origin}/stories?story=${storyId}` 
-      : `https://app.fabletogether.com/stories?story=${storyId}`
+    const shareUrl = `${window.location.origin}/stories?story=${storyId}`
     
     const shareData = {
       title: `Check out "${storyTitle}" on Fable Together`,
@@ -97,7 +75,7 @@ export default function StoriesPage() {
             title: "Link copied!",
             description: "Story link has been copied to your clipboard.",
           })
-        } catch (clipboardError) {
+        } catch {
           toast({
             title: "Share failed",
             description: "Unable to share. Please try again.",
@@ -115,26 +93,6 @@ export default function StoriesPage() {
   const handleBackToLibrary = () => {
     setSelectedStory(null)
   }
-
-  // Get unique categories from stories
-  const categories = useMemo(() => {
-    const cats = new Set(stories.map(s => s.category.toLowerCase()))
-    return Array.from(cats) as string[]
-  }, [])
-
-  // Filter stories based on active filter
-  const filteredStories = useMemo(() => {
-    return stories.filter((story) => {
-      if (activeFilter === "all") return true
-      if (activeFilter === "example") return story.isExample === true
-      if (activeFilter === "purchased") return story.isPurchased === true
-      // Category filters
-      if (activeFilter === "adventure") return story.category.toLowerCase() === "adventure"
-      if (activeFilter === "mystery") return story.category.toLowerCase() === "mystery"
-      if (activeFilter === "fantasy") return story.category.toLowerCase() === "fantasy"
-      return true
-    })
-  }, [activeFilter])
 
   return (
     <div className="flex h-screen">
@@ -157,13 +115,13 @@ export default function StoriesPage() {
                   Story Library
                 </h1>
                 <p className="text-base sm:text-lg text-muted-foreground max-w-3xl">
-                  Discover and enjoy magical stories brought to life with AI narration
+                  Discover illustrated stories and hear them with a voice you choose.
                 </p>
               </div>
 
               {/* Story Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
-                {filteredStories.map((story) => (
+                {stories.map((story) => (
                   <div
                     key={story.id}
                     className="relative rounded-2xl transition-all hover:shadow-lg flex flex-col border border-border/50 p-[1px]"
@@ -178,7 +136,7 @@ export default function StoriesPage() {
                           alt={`${story.title} story cover image`} 
                           fill
                           className="object-cover"
-                          loading="lazy"
+                          priority
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         />
                       </div>
@@ -221,16 +179,6 @@ export default function StoriesPage() {
                   </div>
                 ))}
               </div>
-
-            {filteredStories.length === 0 && (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <p className="text-muted-foreground text-lg">
-                    No stories found matching your filters.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
                 </>
               )}
             </div>

@@ -104,7 +104,19 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type TooltipValue = number | string | Array<number | string>
+type TooltipName = number | string
+type ChartTooltipContentProps = Partial<
+  RechartsPrimitive.TooltipContentProps<TooltipValue, TooltipName>
+> &
+  React.ComponentProps<'div'> & {
+    hideLabel?: boolean
+    hideIndicator?: boolean
+    indicator?: 'line' | 'dot' | 'dashed'
+    nameKey?: string
+    labelKey?: string
+  }
+
 function ChartTooltipContent({
   active,
   payload,
@@ -119,7 +131,7 @@ function ChartTooltipContent({
   color,
   nameKey,
   labelKey,
-}: any) {
+}: ChartTooltipContentProps) {
   const { config } = useChart()
 
   const tooltipLabel = React.useMemo(() => {
@@ -173,7 +185,7 @@ function ChartTooltipContent({
     >
       {!nestLabel ? tooltipLabel : null}
       <div className="grid gap-1.5">
-        {payload.map((item: any, index: number) => {
+        {payload.map((item, index) => {
           const key = `${nameKey || item.name || item.dataKey || 'value'}`
           const itemConfig = getPayloadConfigFromPayload(config, item, key)
           const indicatorColor = color || item.payload.fill || item.color
@@ -244,14 +256,20 @@ function ChartTooltipContent({
 
 const ChartLegend = RechartsPrimitive.Legend
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ChartLegendContentProps = React.ComponentProps<'div'> & {
+  hideIcon?: boolean
+  payload?: ReadonlyArray<RechartsPrimitive.LegendPayload>
+  verticalAlign?: 'top' | 'bottom' | 'middle'
+  nameKey?: string
+}
+
 function ChartLegendContent({
   className,
   hideIcon = false,
   payload,
   verticalAlign = 'bottom',
   nameKey,
-}: any) {
+}: ChartLegendContentProps) {
   const { config } = useChart()
 
   if (!payload?.length) {
@@ -266,8 +284,7 @@ function ChartLegendContent({
         className,
       )}
     >
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      {payload.map((item: any) => {
+      {payload.map((item) => {
         const key = `${nameKey || item.dataKey || 'value'}`
         const itemConfig = getPayloadConfigFromPayload(config, item, key)
 

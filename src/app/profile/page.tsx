@@ -197,7 +197,7 @@ export default function ProfilePage() {
           storiesCount,
           voicesCount,
           questsCount,
-          totalPlays: 0, // TODO: Add plays tracking
+          totalPlays: 0,
         })
         
         setCreditTransactions(transactions)

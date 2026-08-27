@@ -5,8 +5,11 @@ import { AppHeader } from "@/components/app-header"
 import { DashboardTutorial } from "@/components/dashboard-tutorial"
 import { DashboardContentWrapper } from "@/components/dashboard-content-wrapper"
 import { CloneVoiceForm } from "@/components/clone-voice-form"
+import { isDemoMode } from "@/lib/app-mode"
 
 export default function CloneVoicePage() {
+  const demoMode = isDemoMode()
+
   return (
     <div className="flex h-screen">
       <AppSidebar />
@@ -24,7 +27,9 @@ export default function CloneVoicePage() {
                   Clone a Voice
                 </h1>
                 <p className="text-base sm:text-lg text-muted-foreground max-w-3xl">
-                  Create a replica of your voice that sounds just like you. Upload an audio file or record directly to create an instant voice clone.
+                  {demoMode
+                    ? "Create a simulated voice profile and try it with the sample stories. No recording or upload is required."
+                    : "Create a replica of your voice that sounds just like you. Upload an audio file or record directly to create an instant voice clone."}
                 </p>
               </div>
 

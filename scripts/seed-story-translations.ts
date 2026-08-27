@@ -103,8 +103,9 @@ async function translateStory(storyId: number, language: string) {
 
     // Small delay to avoid rate limiting
     await new Promise((resolve) => setTimeout(resolve, 500));
-  } catch (error: any) {
-    console.error(`  ✗ Failed to translate Story ${storyId} → ${language}: ${error.message}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`  ✗ Failed to translate Story ${storyId} → ${language}: ${message}`);
   }
 }
 
@@ -137,8 +138,9 @@ async function seedAllTranslations() {
 
         await translateStory(storyId, language);
         completed++;
-      } catch (error: any) {
-        console.error(`  ✗ Error: ${error.message}`);
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`  ✗ Error: ${message}`);
         failed++;
       }
     }

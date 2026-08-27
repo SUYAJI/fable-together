@@ -1,15 +1,3 @@
-/**
- * Dashboard Quests Component
- * 
- * Displays quest cards on the dashboard homepage.
- * Fetches quest completion status from API with localStorage fallback.
- * 
- * Features:
- * - Auto-refreshes quest status every 10 seconds
- * - Falls back to localStorage for offline/unauthenticated users
- * - Responsive grid layout (1 column mobile, 3 columns desktop)
- */
-
 "use client"
 
 import { SimpleQuestCard } from "@/components/simple-quest-card"
@@ -61,9 +49,7 @@ export function DashboardQuests() {
             return
           }
         }
-      } catch (error) {
-        // Silently fail
-      }
+      } catch {}
 
       // Fallback to localStorage
       if (typeof window !== "undefined") {
@@ -87,7 +73,7 @@ export function DashboardQuests() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
       {(isDemoMode() ? DEMO_QUEST_CARDS : SIMPLE_QUESTS).map((quest) => {
         const completed = getQuestStatus(quest.id)
         return (

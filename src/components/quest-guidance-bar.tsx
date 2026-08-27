@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { X, CheckCircle2, Lightbulb, ArrowRight } from "lucide-react"
+import { X, CheckCircle2, Lightbulb } from "lucide-react"
 import { useState } from "react"
 
 interface QuestTask {

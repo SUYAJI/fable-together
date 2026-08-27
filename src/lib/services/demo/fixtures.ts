@@ -62,7 +62,7 @@ export const DEMO_VOICES = [
   { id: "demo-voice-playful", name: "Playful Narrator", gender: "Male", tags: ["Narrator"] },
 ].map((voice) => ({
   ...voice,
-  description: `${voice.name} is a deterministic demo voice for exploring the Fable Together interface.`,
+  description: `${voice.name} is a sample narrator for stories in this interactive demo.`,
   category: "Demo",
   accent: "Neutral",
   age: "Adult",
@@ -84,8 +84,8 @@ export const DEMO_NOTIFICATIONS = [
   {
     id: "demo-welcome",
     type: "system" as const,
-    title: "Demo Mode",
-    message: "You are exploring a deterministic portfolio demo. No production account or data is in use.",
+    title: "Welcome to Fable Together",
+    message: "Explore the story library, preview voices, and follow the quests to experience the demo.",
     read: false,
     createdAt: DEMO_USER.created_at,
     link: "/dashboard",

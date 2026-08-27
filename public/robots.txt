@@ -1,21 +1,6 @@
-# Robots.txt - Search Engine Crawler Directives
-# 
-# This file tells search engines which pages to crawl and index.
-# 
-# Rules:
-# - Allow all public pages
-# - Disallow API routes (no need to index)
-# - Disallow authentication callback routes (private)
-# - Reference sitemap for complete page list
-
 User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /auth/callback
 Disallow: /auth/reset-password
 Disallow: /auth/set-password
-
-Sitemap: https://app.fabletogether.com/sitemap.xml
-
-
-

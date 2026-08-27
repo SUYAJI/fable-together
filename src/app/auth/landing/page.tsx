@@ -127,7 +127,7 @@ export default function AuthLandingPage() {
             Create Magical Stories with Your Family
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 sm:mb-10 md:mb-12 max-w-3xl mx-auto leading-relaxed px-4">
-            Transform your family&apos;s voices into enchanting narrators. Create personalized stories that bring your loved ones&apos; voices to life with AI-powered storytelling.
+            Discover personalized stories and narration experiences made for families.
           </p>
           
           {/* Feature highlights */}
@@ -319,7 +319,7 @@ export default function AuthLandingPage() {
         <section className="mt-12 sm:mt-16 md:mt-20 text-center" aria-label="Features">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 text-foreground">What you&apos;ll be able to do</h2>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 sm:mb-10 md:mb-12 max-w-2xl mx-auto px-4">
-            Discover the magic of AI-powered storytelling with your family&apos;s voices
+            Discover personalized storytelling with familiar voices
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             <article className="card-elevated p-6 sm:p-8 text-center hover-lift">
@@ -328,7 +328,7 @@ export default function AuthLandingPage() {
               </div>
               <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3 text-foreground">Create Stories</h3>
               <p className="text-sm sm:text-base text-muted-foreground">
-                Generate personalized stories with your family&apos;s voices using advanced AI
+                Create personalized stories and choose how they are narrated
               </p>
             </article>
             <article className="card-elevated p-6 sm:p-8 text-center hover-lift">

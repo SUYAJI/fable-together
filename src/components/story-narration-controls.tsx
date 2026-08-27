@@ -1,29 +1,10 @@
-/**
- * Story Narration Controls Component
- * 
- * Comprehensive controls for narrating stories with:
- * - Voice selection (preset and cloned voices)
- * - Language selection for multilingual narration
- * - Playback speed control
- * - Audio generation and playback
- * - Saved audio variations management
- * - Translation support
- * 
- * Features:
- * - Real-time audio generation using ElevenLabs TTS
- * - Audio caching to reduce API costs
- * - Multiple audio variations per story
- * - Voice preview functionality
- * - Responsive design for all devices
- */
-
 "use client"
 
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Card, CardContent } from "@/components/ui/card"
-import { Play, Download, Save, Loader2, Pause, Edit, Trash2, MoreVertical } from "lucide-react"
+import { Play, Download, Loader2, Pause, Edit, Trash2, MoreVertical } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -44,7 +25,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { ELEVENLABS_LANGUAGE_MAP, LANGUAGE_NAMES, SUPPORTED_LANGUAGES, getLanguageData, getLanguageFlag } from "@/lib/language-codes"
 import { filterCuratedVoices } from "@/lib/voice-filters"
-import { AudioWaveform } from "@/components/audio-waveform"
 import { EnhancedAudioPlayer } from "@/components/enhanced-audio-player"
 import { getVoiceBorderGradient } from "@/lib/voice-colors"
 import { CheckCircle2 } from "lucide-react"
@@ -692,7 +672,7 @@ export function StoryNarrationControls({
           voiceId: selectedVoice.id,
           language: selectedLanguage,
           speed: speed[0],
-          disclosure: "Local browser speech preview — no audio or recording is sent or retained.",
+          disclosure: "This demo uses browser speech. No audio or recording is sent or retained.",
         }
         setNarration(result)
         setAudioUrl(null)
@@ -767,7 +747,6 @@ export function StoryNarrationControls({
     setIsSaving(true)
     setError(null)
     try {
-      const selectedVoice = voices.find(v => v.id === selectedVoiceId)
       const response = await fetch("/api/stories/audio/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

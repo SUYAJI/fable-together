@@ -172,7 +172,7 @@ const PrivacyPolicyContent = () => (
     </div>
 
     <div>
-      <h2 className="text-lg font-semibold mb-3">6. Children's Privacy</h2>
+      <h2 className="text-lg font-semibold mb-3">6. Children&apos;s Privacy</h2>
       <p className="text-muted-foreground leading-relaxed">
         Fable Together is designed for family use. We take children&apos;s privacy seriously. If you are a parent or guardian and believe your child has provided us with personal information, please contact us to have that information removed.
       </p>

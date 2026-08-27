@@ -13,21 +13,6 @@ import { isDemoMode } from "@/lib/app-mode"
 import { demoResponses } from "@/lib/services/demo/responses"
 
 /**
- * Interface for quest data returned by the API
- */
-interface QuestData {
-  id: string
-  slug: string
-  title: string
-  description: string
-  credits_reward: number
-  progress_max: number
-  status: "not_started" | "in_progress" | "completed"
-  progress: number
-  completed_at: string | null
-}
-
-/**
  * Interface for user quest data from database
  */
 interface UserQuestData {

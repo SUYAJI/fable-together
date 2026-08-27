@@ -19,7 +19,7 @@ import { getClientServices } from "@/lib/services/client"
 import { isDemoMode } from "@/lib/app-mode"
 import { getDemoState, resetDemoState, setDemoStoryLanguage } from "@/lib/services/demo/state"
 import { useTheme } from "next-themes"
-import { Loader2, Bell, Shield, Globe, Palette, Mail, Trash2, AlertTriangle, Lock, Eye, EyeOff } from "lucide-react"
+import { Loader2, Bell, Shield, Palette, Trash2, Lock, Eye, EyeOff } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -135,7 +135,7 @@ export default function SettingsPage() {
         if (savedNotifications) {
           try {
             setNotifications(JSON.parse(savedNotifications))
-          } catch (e) {
+          } catch {
             // Ignore parse errors
           }
         }
@@ -144,7 +144,7 @@ export default function SettingsPage() {
         if (savedPrivacy) {
           try {
             setPrivacy(JSON.parse(savedPrivacy))
-          } catch (e) {
+          } catch {
             // Ignore parse errors
           }
         }
@@ -284,7 +284,7 @@ export default function SettingsPage() {
       resetDemoState()
       setDisplayName("Fable Explorer")
       setLanguage("en")
-      toast({ title: "Demo state reset", description: "Local profile changes, progress, credits, and Demo Voice metadata were reset." })
+      toast({ title: "Demo restored", description: "You can explore again from the original starting point." })
       return
     }
     // This would typically call an API endpoint to delete the account
@@ -579,7 +579,7 @@ export default function SettingsPage() {
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {isDemoMode()
-                        ? "Password management is disabled because Demo Mode does not use an account."
+                        ? "This interactive demo does not use an account password."
                         : "Having trouble? You can always use the magic link sign-in method or reset your password via email."}
                     </p>
                   </CardContent>
@@ -588,7 +588,7 @@ export default function SettingsPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-destructive">{isDemoMode() ? "Reset Demo State" : "Danger Zone"}</CardTitle>
-                    <CardDescription>{isDemoMode() ? "Restore the deterministic local demo baseline on this browser." : "Irreversible and destructive actions"}</CardDescription>
+                    <CardDescription>{isDemoMode() ? "Restore the original demo profile, progress, and preferences." : "Irreversible and destructive actions"}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <AlertDialog>
@@ -602,7 +602,7 @@ export default function SettingsPage() {
                         <AlertDialogHeader>
                           <AlertDialogTitle>{isDemoMode() ? "Reset this local demo?" : "Are you absolutely sure?"}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            {isDemoMode() ? "This removes local demo preferences, quest progress, credits, and Demo Voice metadata. No production account or data is affected." : "This action cannot be undone. This will permanently delete your account and remove all your data from our servers."}
+                            {isDemoMode() ? "This clears demo preferences, quest progress, credits, and the Demo Voice saved in this browser." : "This action cannot be undone. This will permanently delete your account and remove all your data from our servers."}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

@@ -79,12 +79,13 @@ export async function POST(request: Request) {
     }
 
     // Get or create user quest (use quest.id which is UUID, not questId which might be slug)
-    let { data: userQuest, error: fetchError } = await supabase
+    const { data: fetchedUserQuest, error: fetchError } = await supabase
       .from("user_quests")
       .select("*")
       .eq("user_id", user.id)
       .eq("quest_id", quest.id)
       .single()
+    let userQuest = fetchedUserQuest
 
     if (fetchError && fetchError.code === "PGRST116") {
       // Quest doesn't exist, create it

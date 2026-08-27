@@ -10,9 +10,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Copy, Mail, MessageCircle } from "lucide-react"
+import { Copy, Mail } from "lucide-react"
 import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
+import { isDemoMode } from "@/lib/app-mode"
 
 interface InviteFriendsModalProps {
   open: boolean
@@ -22,10 +23,11 @@ interface InviteFriendsModalProps {
 export function InviteFriendsModal({ open, onOpenChange }: InviteFriendsModalProps) {
   const [email, setEmail] = useState("")
   const { toast } = useToast()
+  const demoMode = isDemoMode()
 
-  const inviteLink = typeof window !== "undefined" 
-    ? `${window.location.origin}/register` 
-    : "https://app.fabletogether.com/register"
+  const inviteLink = typeof window !== "undefined"
+    ? `${window.location.origin}${demoMode ? "" : "/register"}`
+    : demoMode ? "/" : "/register"
 
   const handleCopyLink = async () => {
     try {
@@ -105,16 +107,18 @@ export function InviteFriendsModal({ open, onOpenChange }: InviteFriendsModalPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Invite Friends</DialogTitle>
+          <DialogTitle>{demoMode ? "Share Fable Together" : "Invite Friends"}</DialogTitle>
           <DialogDescription>
-            Share Fable Together with your friends and family
+            {demoMode
+              ? "Copy a link to this interactive reconstruction."
+              : "Share Fable Together with your friends and family."}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           {/* Copy Link */}
           <div className="space-y-2">
-            <Label>Invite Link</Label>
+            <Label>{demoMode ? "Demo Link" : "Invite Link"}</Label>
             <div className="flex gap-2">
               <Input value={inviteLink} readOnly className="flex-1" />
               <Button onClick={handleCopyLink} size="icon" variant="outline" aria-label="Copy invite link">
@@ -123,45 +127,33 @@ export function InviteFriendsModal({ open, onOpenChange }: InviteFriendsModalPro
             </div>
           </div>
 
-          {/* Email Invite */}
-          <div className="space-y-2">
-            <Label htmlFor="email">Send via Email</Label>
-            <div className="flex gap-2">
-              <Input
-                id="email"
-                type="email"
-                placeholder="friend@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !isSending) {
-                    handleEmailInvite()
-                  }
-                }}
-                className="flex-1"
-                disabled={isSending}
-              />
-              <Button 
-                onClick={handleEmailInvite} 
-                variant="outline"
-                disabled={isSending}
-              >
-                <Mail className="h-4 w-4 mr-2" />
-                {isSending ? "Sending..." : "Send"}
-              </Button>
+          {demoMode ? (
+            <p className="rounded-lg border border-border/50 bg-muted/40 p-3 text-sm text-muted-foreground">
+              Email invitations are represented in the original product interface but are not sent by this demo.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="email">Send via Email</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="friend@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !isSending) handleEmailInvite()
+                  }}
+                  className="flex-1"
+                  disabled={isSending}
+                />
+                <Button onClick={handleEmailInvite} variant="outline" disabled={isSending}>
+                  <Mail className="h-4 w-4 mr-2" />
+                  {isSending ? "Sending..." : "Send"}
+                </Button>
+              </div>
             </div>
-          </div>
-
-          {/* Social Share Placeholder */}
-          <div className="space-y-2">
-            <Label>Share on Social Media</Label>
-            <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" disabled>
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Coming Soon
-              </Button>
-            </div>
-          </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

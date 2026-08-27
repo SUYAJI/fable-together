@@ -8,15 +8,12 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Upload, Mic, MicOff, Play, Pause, Volume2, CheckCircle2, AlertCircle, Info, Loader2, Trash2, Save, ArrowRight, ArrowLeft, Sparkles, RefreshCw, X } from "lucide-react"
+import { Upload, Mic, MicOff, Play, Pause, Volume2, CheckCircle2, AlertCircle, Info, Loader2, Trash2, Save, ArrowRight, ArrowLeft, Sparkles, RefreshCw } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { AudioWaveform } from "@/components/audio-waveform"
 import { EnhancedAudioPlayer } from "@/components/enhanced-audio-player"
 import { SUPPORTED_LANGUAGES, getLanguageData, getLanguageFlag, ELEVENLABS_LANGUAGE_MAP } from "@/lib/language-codes"
-import { getVoiceBorderGradient } from "@/lib/voice-colors"
-import { cn } from "@/lib/utils"
 import { isDemoMode } from "@/lib/app-mode"
 import { createDemoVoice } from "@/lib/services/demo/state"
 import { createBrowserNarration } from "@/lib/browser-narration"
@@ -84,12 +81,9 @@ export function CloneVoiceForm() {
   const [recordingTime, setRecordingTime] = useState(0)
   const [totalRecordingTime, setTotalRecordingTime] = useState(savedProgress?.totalRecordingTime || 0)
   const [savedRecordings, setSavedRecordings] = useState<Array<{ url: string; duration: number; timestamp: number; removeBackgroundNoise?: boolean }>>(savedProgress?.savedRecordings || [])
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [playingRecordingIndex, setPlayingRecordingIndex] = useState<number | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [processingProgress, setProcessingProgress] = useState(0)
   const [clonedVoiceId, setClonedVoiceId] = useState<string | null>(savedProgress?.clonedVoiceId || null)
-  const [previewAudioUrl, setPreviewAudioUrl] = useState<string | null>(null)
   const [fileError, setFileError] = useState("")
   const [showRecordingModal, setShowRecordingModal] = useState(false)
   const [instantVoiceId, setInstantVoiceId] = useState<string | null>(savedProgress?.instantVoiceId || null)
@@ -260,7 +254,6 @@ export function CloneVoiceForm() {
     setSelectedFile(null)
     setRecordedDuration(0)
     setRecordingTime(0)
-    setIsPlaying(false)
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current.currentTime = 0
@@ -345,7 +338,7 @@ export function CloneVoiceForm() {
         setProcessingProgress(100)
         setCurrentStep(4)
         setIsCreatingInstantVoice(false)
-        toast({ title: "Demo Voice ready", description: "This is a local simulation. Browser speech is used for narration; no audio was uploaded or saved." })
+        toast({ title: "Demo Voice ready", description: "This demo uses browser speech for the preview. No recording was uploaded or saved." })
       }, 650)
       return
     }
@@ -437,15 +430,12 @@ export function CloneVoiceForm() {
       // Generate preview samples in all languages
       await generateLanguagePreviews(voiceId)
       
-      // Set preview URL from English
-      if (clonePreviewUrls['en']) {
-        setPreviewAudioUrl(clonePreviewUrls['en'])
-      }
-      
       setCurrentStep(4)
       toast({
         title: "Voice Cloned Successfully!",
-        description: "Your voice clone is ready. Compare it with the original below.",
+        description: isDemoMode()
+          ? "Your simulated voice is ready to preview below."
+          : "Your voice clone is ready. Compare it with the original below.",
       })
     } catch (error) {
       // Only log in development
@@ -574,7 +564,7 @@ export function CloneVoiceForm() {
             }
             return
           })
-        } catch (e) {
+        } catch {
           // Ignore fetch errors for blob URLs
         }
       }
@@ -773,7 +763,7 @@ export function CloneVoiceForm() {
       if (isDemoMode()) {
         createDemoVoice({ name: saveVoiceName, tags: saveVoiceTags, description: saveVoiceDescription })
         setIsVoiceSaved(true)
-        toast({ title: "Demo Voice saved", description: "The simulated voice metadata is now available across this browser demo." })
+        toast({ title: "Demo Voice saved", description: "Your Demo Voice is now available throughout the story library." })
         return
       }
       const response = await fetch("/api/voices/update", {
@@ -844,7 +834,6 @@ export function CloneVoiceForm() {
     setTotalRecordingTime(0)
     setSavedRecordings([])
     setClonedVoiceId(null)
-    setPreviewAudioUrl(null)
     setInstantVoiceId(null)
     setSaveVoiceName("")
     setSaveVoiceTags([])
@@ -975,22 +964,6 @@ export function CloneVoiceForm() {
     saveVoiceName
   ])
 
-  // Get current step progress percentage (for display in step indicator)
-  // Calculate step progress - memoized for performance
-  const stepProgress = useMemo(() => {
-    switch (currentStep) {
-      case 1: return voiceName.trim() ? 100 : 0
-      case 2: {
-        const hasAudio = selectedFile || selectedFileUrl || recordedAudio || totalRecordingTime >= 60
-        return hasAudio ? 100 : (totalRecordingTime / 60) * 100
-      }
-      case 3: return processingProgress
-      case 4: return clonedVoiceId ? 100 : 0
-      case 5: return saveVoiceName.trim() ? 100 : 0
-      default: return 0
-    }
-  }, [currentStep, voiceName, selectedFile, selectedFileUrl, recordedAudio, totalRecordingTime, processingProgress, clonedVoiceId, saveVoiceName])
-
   // Memoize computed values for performance
   const canProceedToStep2 = useMemo(() => voiceName.trim().length > 0, [voiceName])
   const canProceedToStep3 = useMemo(() => 
@@ -1037,7 +1010,9 @@ export function CloneVoiceForm() {
                   Name Your Voice
                 </h2>
                 <p className="text-base text-muted-foreground">
-                  Give your voice clone a name so you can easily identify it later.
+                  {isDemoMode()
+                    ? "Give your simulated voice a name for the demo library."
+                    : "Give your voice clone a name so you can easily identify it later."}
                 </p>
               </div>
 
@@ -1095,7 +1070,9 @@ export function CloneVoiceForm() {
                   Provide Audio
                 </h2>
                 <p className="text-base text-muted-foreground">
-                  Upload an audio file or record your voice. You need at least 60 seconds of clear audio for best results.
+                  {isDemoMode()
+                    ? "This demo simulates the audio step. Continue without recording or uploading anything."
+                    : "Upload an audio file or record your voice. You need at least 60 seconds of clear audio for best results."}
                 </p>
               </div>
 
@@ -1457,7 +1434,7 @@ export function CloneVoiceForm() {
                     </>
                   ) : (
                     <>
-                      Create Voice Clone
+                      {isDemoMode() ? "Create Demo Voice" : "Create Voice Clone"}
                       <ArrowRight className="h-4 w-4" />
                     </>
                   )}
@@ -1478,10 +1455,12 @@ export function CloneVoiceForm() {
                   Step 3 of 5
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-bold mb-3">
-                  Creating Your Voice Clone
+                  {isDemoMode() ? "Creating Your Demo Voice" : "Creating Your Voice Clone"}
                 </h2>
                 <p className="text-base text-muted-foreground">
-                  Our AI is analyzing your voice and creating a digital replica. This may take a few moments.
+                  {isDemoMode()
+                    ? "Preparing a local voice profile for this demo. This takes a few moments."
+                    : "Our AI is analyzing your voice and creating a digital replica. This may take a few moments."}
                 </p>
               </div>
 
@@ -1553,10 +1532,12 @@ export function CloneVoiceForm() {
                   Step 4 of 5
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-bold mb-3">
-                  Compare Your Voice
+                  {isDemoMode() ? "Preview Demo Voice" : "Compare Your Voice"}
                 </h2>
                 <p className="text-base text-muted-foreground">
-                  Listen to your original voice and compare it with the AI-generated clone. Try different languages to hear how your voice sounds in each.
+                  {isDemoMode()
+                    ? "Hear how your Demo Voice sounds with different story languages."
+                    : "Listen to your original voice and compare it with the cloned voice in different languages."}
                 </p>
               </div>
 
@@ -1595,7 +1576,7 @@ export function CloneVoiceForm() {
 
                 {/* Cloned Voice */}
                 <div className="space-y-3">
-                  <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Voice Clone</div>
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">{isDemoMode() ? "Demo Voice" : "Voice Clone"}</div>
                   <div className="glass-card border border-border/50 rounded-xl p-4 sm:p-6 space-y-4 overflow-hidden">
                     <div className="flex items-center gap-3">
                       <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center flex-shrink-0">
@@ -1603,13 +1584,13 @@ export function CloneVoiceForm() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold text-base sm:text-lg truncate">{saveVoiceName || voiceName || "Cloned Voice"}</div>
-                        <div className="text-xs sm:text-sm text-muted-foreground">Clone</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground">{isDemoMode() ? "Simulated preview" : "Clone"}</div>
                       </div>
                     </div>
                     {isDemoMode() ? (
                       <Button type="button" variant="outline" onClick={handleClonePlayPause} className="w-full gap-2">
                         {isPlayingClone ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                        {isPlayingClone ? "Stop browser preview" : "Preview simulated voice"}
+                        {isPlayingClone ? "Stop preview" : "Preview Demo Voice"}
                       </Button>
                     ) : cloneAudioElement && clonePreviewUrls[selectedPreviewLanguage] ? (
                       <div className="w-full overflow-hidden" role="region" aria-label="Cloned voice audio player">
@@ -1870,7 +1851,9 @@ export function CloneVoiceForm() {
               <div>
                 <h3 className="text-xl sm:text-2xl font-bold mb-2">Voice Saved Successfully!</h3>
                 <p className="text-base text-muted-foreground mb-6">
-                  Your voice clone has been added to your library and is ready to use in stories.
+                  {isDemoMode()
+                    ? "Your simulated voice has been added to the demo library and is ready to use in stories."
+                    : "Your voice clone has been added to your library and is ready to use in stories."}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button
