@@ -15,7 +15,7 @@ export default function CloneVoicePage() {
       <AppSidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <AppHeader />
-        <main id="main-content" className="flex-1 overflow-y-auto bg-background dark:bg-[#1a1a1a]" role="main" tabIndex={-1}>
+        <main id="main-content" className="flex-1 overflow-y-auto bg-background" role="main" tabIndex={-1}>
           <DashboardContentWrapper>
             <div className="mx-auto max-w-full px-4 sm:max-w-4xl sm:px-6 lg:max-w-6xl lg:px-8 xl:max-w-7xl pt-6 sm:pt-8 md:pt-10 pb-8 sm:pb-12 md:pb-16">
               {/* Header Section */}

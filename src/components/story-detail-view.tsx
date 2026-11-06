@@ -2,8 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
 import { ArrowLeft } from "lucide-react"
 import { StoryNarrationControls } from "@/components/story-narration-controls"
 import Image from "next/image"
@@ -29,6 +27,7 @@ interface Story {
   creators: Creator[]
   tokens: number
   body?: string
+  summary?: string
   isExample?: boolean
 }
 
@@ -45,87 +44,67 @@ export function StoryDetailView({ story, onBack }: StoryDetailViewProps) {
   const displayedTitle = story.title
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-fade-in">
-      {/* Back Button */}
+    <div className="space-y-10 animate-fade-in">
       <Button
         onClick={onBack}
-        variant="outline"
-        className="flex items-center gap-2 text-sm sm:text-base"
+        variant="ghost"
+        className="-ml-3 gap-2 text-muted-foreground hover:text-foreground"
         aria-label="Back to Story Library"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        <span>Back to Story Library</span>
+        Story Library
       </Button>
 
-      {/* Header with Typography Hierarchy */}
-      <div className="mb-6 sm:mb-8">
-        <div className="text-xs sm:text-sm uppercase tracking-wide text-muted-foreground mb-3 sm:mb-4">
-          Story
-        </div>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
-          {displayedTitle}
-        </h1>
-      </div>
-
-      {/* Two Column Layout: Image and Details */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-        {/* Story Image */}
-        <div className="story-thumbnail relative overflow-hidden rounded-lg h-48 sm:h-64 md:h-full md:min-h-[400px]">
+      {/* Story header */}
+      <header className="grid items-center gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:gap-10">
+        <div className="story-thumbnail relative aspect-[4/3] overflow-hidden rounded-3xl">
           <Image
             src={story.thumbnail || "/placeholder.svg"}
-            alt={`${displayedTitle} story cover image`}
+            alt={`Illustration for ${displayedTitle}`}
             fill
             className="object-cover"
-            sizes="(max-width: 768px) 100vw, 50vw"
+            sizes="(max-width: 768px) 100vw, 45vw"
             priority
           />
         </div>
 
-        {/* Story Details and Creators */}
-        <div className="flex items-center justify-center">
-          <Card className="w-full border rounded-lg h-full md:min-h-[400px] flex flex-col">
-            <CardContent className="p-4 sm:p-6 flex-1 flex flex-col">
-              {/* Creators */}
-              <div className="space-y-2 sm:space-y-3">
-                <h3 className="text-base sm:text-lg font-semibold">Story Creators</h3>
-                {story.creators.map((creator) => (
-                  <div
-                    key={creator.id}
-                    className="card-elevated flex items-start gap-3 sm:gap-4 p-3 sm:p-4"
-                  >
-                    <Avatar className="avatar-ring h-12 w-12 sm:h-16 sm:w-16 flex-shrink-0">
-                      {creator.avatar && (
-                        <AvatarImage src={creator.avatar} alt={`${creator.name} profile picture`} />
-                      )}
-                      <AvatarFallback className="bg-muted text-muted-foreground text-sm sm:text-lg" aria-label={`${creator.name} avatar`}>
-                        {creator.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-                        <h4 className="font-semibold text-base sm:text-lg">
-                          {creator.name}
-                        </h4>
-                        <Badge variant="secondary" className="text-xs font-normal w-fit">
-                          {creator.role}
-                        </Badge>
-                      </div>
-                      {creator.bio && <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{creator.bio}</p>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        <div>
+          <p className="eyebrow mb-3">
+            {story.category} · {story.duration}
+          </p>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl">{displayedTitle}</h1>
+          {story.summary && (
+            <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted-foreground">{story.summary}</p>
+          )}
+
+          <ul className="mt-6 space-y-3" aria-label="Story creators">
+            {story.creators.map((creator) => (
+              <li key={creator.id} className="flex items-center gap-3">
+                <Avatar className="avatar-ring h-10 w-10 flex-shrink-0">
+                  {creator.avatar && <AvatarImage src={creator.avatar} alt="" />}
+                  <AvatarFallback className="bg-muted text-sm text-muted-foreground">
+                    {creator.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">
+                    {creator.name}
+                    <span className="font-normal text-muted-foreground"> · {creator.role}</span>
+                  </p>
+                  {creator.bio && <p className="truncate text-sm text-muted-foreground">{creator.bio}</p>}
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
-      </div>
+      </header>
 
       {/* Story Narration Controls */}
       {story.body && (
-        <div className="mt-4 sm:mt-6">
+        <div>
           <StoryNarrationControls
             storyId={story.id}
             storyText={story.body}

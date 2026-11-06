@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Play, Download, Loader2, Pause, Edit, Trash2, MoreVertical } from "lucide-react"
 import {
   Dialog,
@@ -23,11 +23,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { ELEVENLABS_LANGUAGE_MAP, LANGUAGE_NAMES, SUPPORTED_LANGUAGES, getLanguageData, getLanguageFlag } from "@/lib/language-codes"
+import { ELEVENLABS_LANGUAGE_MAP, LANGUAGE_NAMES, SUPPORTED_LANGUAGES, getLanguageData } from "@/lib/language-codes"
 import { filterCuratedVoices } from "@/lib/voice-filters"
 import { EnhancedAudioPlayer } from "@/components/enhanced-audio-player"
-import { getVoiceBorderGradient } from "@/lib/voice-colors"
-import { CheckCircle2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { StoryPlayerModal, type PlayerStory, type PlayerNarration } from "@/components/story-player-modal"
 import { createBrowserNarration, getBrowserNarrationUnavailableMessage, isBrowserNarrationAvailable } from "@/lib/browser-narration"
@@ -829,28 +827,19 @@ export function StoryNarrationControls({
     return "Voice"
   }
 
+  const voiceFilters: { id: typeof activeVoiceCategory; label: string }[] = [
+    { id: "all", label: "All" },
+    { id: "family", label: "Family" },
+    { id: "educators", label: "Educators" },
+    { id: "narrators", label: "Narrators" },
+  ]
+  const selectedVoiceName = voices.find((voice) => voice.id === selectedVoiceId)?.name
+  const selectedLanguageName =
+    getLanguageData(selectedLanguage)?.name || LANGUAGE_NAMES[selectedLanguage] || selectedLanguage
+  const usesLatinScript = ["en", "es", "fr"].includes(selectedLanguage)
+
   return (
-    <div className="w-full space-y-6 sm:space-y-8">
-      {/* Header with Typography Hierarchy */}
-      <div className="mb-6 sm:mb-8">
-        <div className="text-xs sm:text-sm uppercase tracking-wide text-muted-foreground mb-3 sm:mb-4">
-          Narration
-        </div>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
-          Narrate Your Story
-        </h2>
-        <p className="text-base sm:text-lg text-muted-foreground max-w-3xl">
-          Select a voice, language, and speed to generate audio narration for your story
-        </p>
-      </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-lg border border-destructive/20">
-          {error}
-        </div>
-      )}
-
+    <div className="w-full space-y-10">
       <StoryPlayerModal
         story={story}
         narration={narration}
@@ -858,322 +847,278 @@ export function StoryNarrationControls({
         onOpenChange={setIsPlayerOpen}
       />
 
-      {/* Audio Player with Waveform - Always Visible */}
-      <Card className="glass-card border border-border/50">
-        <CardContent className="p-4 sm:p-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Generated Audio</h3>
-            </div>
-            
-            {audioUrl && audioElement ? (
-              <EnhancedAudioPlayer
-                audio={audioElement}
-                audioUrl={audioUrl}
-                isPlaying={isPlaying}
-                onPlayPause={handlePlayPause}
-                onDownload={handleDownload}
-                onSave={handleSave}
-                isSaving={isSaving}
-              />
-            ) : narration?.playback === "browser-speech" ? (
-              <div className="space-y-3 rounded-xl border border-dashed border-border/50 bg-muted/30 p-6 text-center">
-                <p className="text-sm font-medium">{narration.disclosure || "Browser narration preview"}</p>
-                <p className="text-sm text-muted-foreground">Ready with {narration.voiceName}. Playback uses your browser&apos;s available system voice.</p>
-                <Button onClick={() => setIsPlayerOpen(true)} variant="outline" aria-label="Open story player">
-                  Open Story Player
-                </Button>
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-10">
+        {/* Reading page */}
+        <section aria-labelledby="story-text-heading" className="order-2 lg:order-1">
+          <div className="mb-4 flex items-baseline justify-between gap-4">
+            <h2 id="story-text-heading" className="text-2xl">The story</h2>
+            <span className="text-sm text-muted-foreground">{selectedLanguageName}</span>
+          </div>
+          <div
+            className="rounded-3xl border bg-card px-6 py-8 sm:px-10 sm:py-12"
+            role="region"
+            aria-label="Story text"
+            aria-live="polite"
+          >
+            {isTranslating ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                <span>Translating to {selectedLanguageName}...</span>
               </div>
             ) : (
-              <div className="flex items-center justify-center py-12 bg-muted/30 rounded-xl border border-dashed border-border/50">
-                <div className="text-center space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    Generate audio narration to see it here
-                  </p>
-                </div>
-              </div>
+              <p
+                lang={selectedLanguage}
+                className={cn(
+                  "story-prose max-w-[62ch] whitespace-pre-wrap text-foreground",
+                  usesLatinScript && "story-dropcap",
+                )}
+              >
+                {translatedText}
+              </p>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </section>
 
-      {/* Story Text Display - Right Under Generated Audio */}
-      <div className="space-y-3">
-        <h3 className="text-lg font-semibold">Story Text</h3>
-        <div 
-          className="bg-muted/50 p-6 sm:p-8 rounded-xl border border-border/50 min-h-[300px] max-h-[500px] overflow-y-auto" 
-          role="region" 
-          aria-label="Story text"
-        >
-          {isTranslating ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Translating to {getLanguageData(selectedLanguage)?.name || LANGUAGE_NAMES[selectedLanguage]}...</span>
-            </div>
-          ) : (
-            <p className="text-base sm:text-lg leading-relaxed whitespace-pre-wrap text-foreground">
-              {translatedText}
+        {/* Listen panel: voice, language, speed, narrate, play */}
+        <section aria-labelledby="listen-heading" className="order-1 lg:order-2">
+          <div className="rounded-3xl border bg-card p-5 sm:p-6 lg:sticky lg:top-6">
+            <h2 id="listen-heading" className="text-2xl">Listen</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Choose who reads, in which language, then press Narrate.
             </p>
-          )}
-        </div>
-      </div>
 
-      {/* Language Selection */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium">Language</label>
-        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Select narration language">
-          {SUPPORTED_LANGUAGES.map((lang) => {
-            const langData = getLanguageData(lang)
-            const flag = getLanguageFlag(lang)
-            const name = langData?.name || LANGUAGE_NAMES[lang] || lang
-            return (
-              <Button
-                key={lang}
-                variant={selectedLanguage === lang ? "default" : "outline"}
-                size="default"
-                onClick={() => setSelectedLanguage(lang)}
-                className="rounded-full flex items-center gap-2 h-10 px-4"
-                aria-label={`Select ${name} language`}
-                aria-checked={selectedLanguage === lang}
-                role="radio"
-              >
-                <span className="text-lg">{flag}</span>
-                <span className="text-sm font-medium">{name}</span>
-              </Button>
-            )
-          })}
-        </div>
-      </div>
+            {error && (
+              <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive" role="alert">
+                {error}
+              </div>
+            )}
 
-      {/* Speed Control */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <label htmlFor="speed-slider" className="text-sm font-medium">Speed</label>
-          <span className="text-sm font-medium text-muted-foreground">{speed[0].toFixed(2)}x</span>
-        </div>
-        <Slider
-          id="speed-slider"
-          value={speed}
-          onValueChange={setSpeed}
-          min={0.25}
-          max={2.0}
-          step={0.05}
-          className="w-full"
-          aria-label="Narration speed"
-          aria-valuemin={0.25}
-          aria-valuemax={2.0}
-          aria-valuenow={speed[0]}
-        />
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>0.25x</span>
-          <span>2.0x</span>
-        </div>
-      </div>
+            {/* 1. Voice */}
+            <fieldset className="mt-6">
+              <legend className="mb-3 flex items-center gap-2 text-sm font-medium">
+                <span className="step-number">1</span>
+                Voice
+              </legend>
 
-      {/* Narrate Button */}
-      <Button 
-        onClick={handleNarrate} 
-        disabled={!selectedVoiceId || isGenerating || isLoadingVoices}
-        className="w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90 rounded-lg px-6"
-        size="lg"
-        aria-label={isGenerating ? "Generating narration" : "Narrate story"}
-      >
-        {isGenerating ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Generating...
-          </>
-        ) : (
-          <>
-            <Play className="mr-2 h-4 w-4" />
-            Narrate Story
-          </>
-        )}
-      </Button>
-
-      {/* Voice Selection - Smaller Voice Library Cards */}
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-lg font-semibold mb-3">Select Voice</h3>
-          
-          {/* Voice Category Filters */}
-          <div className="flex gap-2 flex-wrap mb-4" role="tablist" aria-label="Filter voices by category">
-            <Button
-              variant={activeVoiceCategory === "all" ? "default" : "ghost"}
-              onClick={() => setActiveVoiceCategory("all")}
-              size="sm"
-              className="rounded-full text-xs h-7 px-3"
-              role="tab"
-              aria-selected={activeVoiceCategory === "all"}
-              aria-label="Show all voices"
-            >
-              All
-            </Button>
-            <Button
-              variant={activeVoiceCategory === "family" ? "default" : "ghost"}
-              onClick={() => setActiveVoiceCategory("family")}
-              size="sm"
-              className="rounded-full text-xs h-7 px-3"
-              role="tab"
-              aria-selected={activeVoiceCategory === "family"}
-              aria-label="Show family voices"
-            >
-              Family
-            </Button>
-            <Button
-              variant={activeVoiceCategory === "educators" ? "default" : "ghost"}
-              onClick={() => setActiveVoiceCategory("educators")}
-              size="sm"
-              className="rounded-full text-xs h-7 px-3"
-              role="tab"
-              aria-selected={activeVoiceCategory === "educators"}
-              aria-label="Show educator voices"
-            >
-              Educators
-            </Button>
-            <Button
-              variant={activeVoiceCategory === "narrators" ? "default" : "ghost"}
-              onClick={() => setActiveVoiceCategory("narrators")}
-              size="sm"
-              className="rounded-full text-xs h-7 px-3"
-              role="tab"
-              aria-selected={activeVoiceCategory === "narrators"}
-              aria-label="Show narrator voices"
-            >
-              Narrators
-            </Button>
-          </div>
-
-          {/* Voice Cards - Smaller versions of voice library */}
-          {isLoadingVoices ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading voices...
-            </div>
-          ) : voices.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No voices available. Please add voices to your library.</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {filteredVoices.map((voice) => {
-                const borderGradient = getVoiceBorderGradient(voice.name)
-                const isSelected = selectedVoiceId === voice.id
-                const voiceType = getVoiceTypeLabel(voice)
-                const tagString = voice.tags?.join(" • ") || ""
-                
-                return (
-                  <div
-                    key={voice.id}
+              <div className="mb-3 flex flex-wrap gap-1.5" role="tablist" aria-label="Filter voices by category">
+                {voiceFilters.map((filter) => (
+                  <button
+                    key={filter.id}
+                    type="button"
+                    onClick={() => setActiveVoiceCategory(filter.id)}
+                    role="tab"
+                    aria-selected={activeVoiceCategory === filter.id}
                     className={cn(
-                      "relative rounded-xl transition-all hover:shadow-lg flex flex-col p-[1px] cursor-pointer",
-                      `bg-gradient-to-r ${borderGradient}`,
-                      isSelected && "ring-2 ring-primary ring-offset-2"
+                      "rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      activeVoiceCategory === filter.id
+                        ? "bg-foreground text-background"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
                     )}
-                    onClick={() => { setSelectedVoiceId(voice.id); if (isDemoMode()) setDemoPreferredVoice(voice.id) }}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault()
-                        setSelectedVoiceId(voice.id)
-                        if (isDemoMode()) setDemoPreferredVoice(voice.id)
-                      }
-                    }}
-                    role="radio"
-                    aria-checked={isSelected}
-                    tabIndex={0}
                   >
-                    <Card className="glass-card relative overflow-hidden rounded-xl border-0 h-full flex-1 flex flex-col">
-                      <CardContent className="p-3 sm:p-4 flex flex-col h-full flex-1">
-                        {/* Header with Title and Checkmark */}
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2 min-w-0 flex-1">
-                            <h4 className="text-base sm:text-lg font-bold text-foreground truncate">
-                              {voice.name}
-                            </h4>
-                            {isSelected && (
-                              <div className="h-3 w-3 rounded-full flex items-center justify-center bg-primary flex-shrink-0">
-                                <CheckCircle2 className="h-2 w-2 text-primary-foreground" />
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
 
-                        {/* Description */}
-                        {voice.description && (
-                          <p className="text-xs sm:text-sm mb-2 leading-relaxed text-muted-foreground line-clamp-2">
-                            {voice.description}
-                          </p>
+              {isLoadingVoices ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  Loading voices...
+                </div>
+              ) : voices.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No voices yet. Add one from the Voice Library.</p>
+              ) : (
+                <div className="max-h-[320px] space-y-2 overflow-y-auto pr-1" role="radiogroup" aria-label="Narration voice">
+                  {filteredVoices.map((voice) => {
+                    const isSelected = selectedVoiceId === voice.id
+                    const voiceType = getVoiceTypeLabel(voice)
+                    const selectVoice = () => {
+                      setSelectedVoiceId(voice.id)
+                      if (isDemoMode()) setDemoPreferredVoice(voice.id)
+                    }
+
+                    return (
+                      <div
+                        key={voice.id}
+                        className={cn(
+                          "flex cursor-pointer items-center gap-3 rounded-2xl border px-3 py-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                          isSelected ? "border-lantern bg-lantern-soft" : "hover:bg-accent/60",
                         )}
+                        onClick={selectVoice}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault()
+                            selectVoice()
+                          }
+                        }}
+                        role="radio"
+                        aria-checked={isSelected}
+                        tabIndex={0}
+                      >
+                        <span
+                          className={cn(
+                            "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
+                            isSelected ? "border-lantern" : "border-muted-foreground/50",
+                          )}
+                          aria-hidden="true"
+                        >
+                          {isSelected && <span className="h-2 w-2 rounded-full bg-lantern" />}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-medium">{voice.name}</span>
+                          <span className="block truncate text-xs text-muted-foreground">
+                            {voice.tags?.length ? `${voice.tags.join(" · ")} · ${voiceType}` : voiceType}
+                          </span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            handleVoicePreview(voice.id, voice.name)
+                          }}
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-background hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          aria-label={playingPreviewId === voice.id ? `Stop preview of ${voice.name}` : `Preview ${voice.name}`}
+                        >
+                          {playingPreviewId === voice.id ? (
+                            <Pause className="h-4 w-4" aria-hidden="true" />
+                          ) : (
+                            <Play className="h-4 w-4" aria-hidden="true" />
+                          )}
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </fieldset>
 
-                        {/* Tags */}
-                        {tagString && (
-                          <p className="text-xs mb-2 text-muted-foreground/70">
-                            {tagString} • {voiceType}
-                          </p>
-                        )}
-
-                        {/* Preview Button */}
-                        <div className="mt-auto pt-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleVoicePreview(voice.id, voice.name)
-                            }}
-                            className={cn(
-                              "w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
-                              isSelected
-                                ? "bg-primary/10 hover:bg-primary/20 text-primary"
-                                : "bg-muted hover:bg-muted/80 text-foreground"
-                            )}
-                            aria-label={`Preview ${voice.name}`}
-                          >
-                            {playingPreviewId === voice.id ? (
-                              <>
-                                <Pause className="h-3 w-3" />
-                                <span>Playing...</span>
-                              </>
-                            ) : (
-                              <>
-                                <Play className="h-3 w-3" />
-                                <span>Preview</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    {/* Bottom Tab with Gradient */}
-                    <div 
+            {/* 2. Language */}
+            <fieldset className="mt-6">
+              <legend className="mb-3 flex items-center gap-2 text-sm font-medium">
+                <span className="step-number">2</span>
+                Language
+              </legend>
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Narration language">
+                {SUPPORTED_LANGUAGES.map((lang) => {
+                  const langData = getLanguageData(lang)
+                  const name = langData?.name || LANGUAGE_NAMES[lang] || lang
+                  const isSelected = selectedLanguage === lang
+                  return (
+                    <button
+                      key={lang}
+                      type="button"
+                      onClick={() => setSelectedLanguage(lang)}
+                      role="radio"
+                      aria-checked={isSelected}
+                      aria-label={name}
                       className={cn(
-                        "h-2 rounded-b-xl -mt-[1px]",
-                        `bg-gradient-to-r ${borderGradient}`
+                        "rounded-full border px-3.5 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        isSelected
+                          ? "border-lantern bg-lantern-soft font-medium text-foreground"
+                          : "text-muted-foreground hover:bg-accent hover:text-foreground",
                       )}
-                    />
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      </div>
+                    >
+                      <span lang={lang}>{langData?.nativeName || name}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </fieldset>
 
+            {/* 3. Speed */}
+            <div className="mt-6">
+              <div className="mb-3 flex items-center justify-between">
+                <label htmlFor="speed-slider" className="flex items-center gap-2 text-sm font-medium">
+                  <span className="step-number">3</span>
+                  Speed
+                </label>
+                <span className="text-sm tabular-nums text-muted-foreground">{speed[0].toFixed(2)}x</span>
+              </div>
+              <Slider
+                id="speed-slider"
+                value={speed}
+                onValueChange={setSpeed}
+                min={0.25}
+                max={2.0}
+                step={0.05}
+                className="w-full"
+                aria-label="Narration speed"
+              />
+              <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+                <span>Slower</span>
+                <span>Faster</span>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleNarrate}
+              disabled={!selectedVoiceId || isGenerating || isLoadingVoices}
+              className="mt-6 w-full gap-2"
+              size="lg"
+              aria-label={isGenerating ? "Generating narration" : "Narrate story"}
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  Preparing narration...
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4" aria-hidden="true" />
+                  Narrate{selectedVoiceName ? ` with ${selectedVoiceName}` : ""}
+                </>
+              )}
+            </Button>
+
+            {/* Result */}
+            <div className="mt-5" aria-live="polite">
+              {audioUrl && audioElement ? (
+                <EnhancedAudioPlayer
+                  audio={audioElement}
+                  audioUrl={audioUrl}
+                  isPlaying={isPlaying}
+                  onPlayPause={handlePlayPause}
+                  onDownload={handleDownload}
+                  onSave={handleSave}
+                  isSaving={isSaving}
+                />
+              ) : narration?.playback === "browser-speech" ? (
+                <div className="rounded-2xl border border-lantern/40 bg-lantern-soft p-4">
+                  <p className="text-sm font-medium">Ready with {narration.voiceName}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {narration.disclosure || "Plays with your browser's built-in speech voice."}
+                  </p>
+                  <Button onClick={() => setIsPlayerOpen(true)} className="mt-3 w-full gap-2" variant="outline" aria-label="Open story player">
+                    <Play className="h-4 w-4" aria-hidden="true" />
+                    Open story player
+                  </Button>
+                </div>
+              ) : (
+                <p className="rounded-2xl border border-dashed px-4 py-5 text-center text-sm text-muted-foreground">
+                  Your narration will appear here.
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+      </div>
 
       {/* Saved Audio Variations */}
       {savedAudios.length > 0 && (
-        <div className="border-t pt-6 space-y-4">
-          <h3 className="text-lg font-semibold">Saved Variations</h3>
+        <section className="space-y-4 border-t pt-8" aria-labelledby="variations-heading">
+          <h2 id="variations-heading" className="text-2xl">Saved narrations</h2>
           <div className="grid grid-cols-1 gap-4">
             {savedAudios.map((audio) => (
-              <SavedAudioVariation 
-                key={audio.id} 
+              <SavedAudioVariation
+                key={audio.id}
                 audio={audio}
                 onUpdate={handleUpdateVariation}
                 onDelete={handleDeleteVariation}
               />
             ))}
           </div>
-        </div>
+        </section>
       )}
     </div>
   )
 }
-

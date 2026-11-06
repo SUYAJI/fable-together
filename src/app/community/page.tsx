@@ -75,7 +75,7 @@ export default function CommunityPage() {
       <AppSidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <AppHeader />
-        <main id="main-content" className="flex-1 overflow-y-auto dark:bg-[#1a1a1a]" role="main" tabIndex={-1}>
+        <main id="main-content" className="flex-1 overflow-y-auto bg-background" role="main" tabIndex={-1}>
           <div className="mx-auto max-w-7xl pt-6 sm:pt-8 md:pt-10 px-6 pb-8 sm:pb-12 md:pb-16">
             {/* Header Section */}
             <div className="mb-12 sm:mb-16">

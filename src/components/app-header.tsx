@@ -105,7 +105,7 @@ export function AppHeader({ user: propUser }: AppHeaderProps) {
   }, [propUser])
   return (
     <header 
-      className="app-header sticky top-0 z-10 flex h-16 sm:h-20 items-center gap-1.5 sm:gap-2 md:gap-4 lg:gap-6 px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40"
+      className="app-header sticky top-0 z-10 flex h-16 items-center gap-1.5 sm:gap-2 md:gap-3 lg:gap-4 px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8"
       role="banner"
       aria-label="Main navigation"
     >
@@ -133,9 +133,9 @@ export function AppHeader({ user: propUser }: AppHeaderProps) {
             aria-label={`View profile for ${user.display_name}`}
             className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-full"
           >
-            <Avatar className="avatar-ring h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 cursor-pointer bg-primary hover:ring-2 hover:ring-primary transition-all">
+            <Avatar className="avatar-ring h-9 w-9 cursor-pointer bg-primary transition-all">
               <AvatarImage src={user.avatar_url} alt={`${user.display_name} profile picture`} />
-              <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-sm sm:text-base md:text-lg" aria-hidden="true">
+              <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-sm" aria-hidden="true">
                 {getInitials(user.display_name)}
               </AvatarFallback>
             </Avatar>

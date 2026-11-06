@@ -8,7 +8,8 @@ import { QuestCompletionModal } from "@/components/quest-completion-modal"
 import { useQuestGuidance } from "@/hooks/use-quest-guidance"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Loader2, Lightbulb, CheckCircle2, Trash2, MoreVertical } from "lucide-react"
+import { Loader2, Mic, Trash2, MoreVertical } from "lucide-react"
+import Link from "next/link"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,8 +20,6 @@ import { useToast } from "@/hooks/use-toast"
 import { useState, useEffect } from "react"
 import { VoiceCardPreview } from "@/components/voice-card-preview"
 import { filterCuratedVoices } from "@/lib/voice-filters"
-import { getVoiceBorderGradient } from "@/lib/voice-colors"
-import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { isDemoMode } from "@/lib/app-mode"
 import { deleteDemoVoice, getDemoVoices, recordDemoAction, subscribeDemoState } from "@/lib/services/demo/state"
@@ -255,34 +254,25 @@ export default function VoicesPage() {
       <AppSidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <AppHeader />
-        <main id="main-content" className="flex-1 overflow-y-auto bg-background dark:bg-[#1a1a1a]" role="main" tabIndex={-1}>
+        <main id="main-content" className="flex-1 overflow-y-auto bg-background" role="main" tabIndex={-1}>
           <div className="mx-auto max-w-full px-4 sm:max-w-4xl sm:px-6 lg:max-w-6xl lg:px-8 xl:max-w-7xl pt-6 sm:pt-8 md:pt-10 pb-8 sm:pb-12 md:pb-16">
             {/* Header Section */}
-            <div className="mb-12 sm:mb-16">
-              <div className="text-sm uppercase tracking-wide text-muted-foreground mb-4">
-                Voices
+            <div className="mb-8 flex flex-col gap-5 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="eyebrow mb-3">Voice Library</p>
+                <h1 className="text-4xl sm:text-5xl">Who should read tonight?</h1>
+                <p className="mt-3 max-w-2xl text-base sm:text-lg text-muted-foreground">
+                  Preview each voice in any of the five languages. The one you pick on a story is remembered for the
+                  next one.
+                </p>
               </div>
-              <h1 className="text-4xl sm:text-5xl font-bold mb-4">
-                Voice Library
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-3xl">
-                Discover and manage voices for your stories.
-              </p>
+              <Button asChild size="lg" className="w-fit gap-2">
+                <Link href="/voices/clone">
+                  <Mic className="h-4 w-4" aria-hidden="true" />
+                  Clone a voice
+                </Link>
+              </Button>
             </div>
-
-            {/* Tips for Using Voices */}
-            <Card className="mb-6 sm:mb-8 glass-card border border-border/50 rounded-2xl">
-              <CardContent className="p-4 sm:p-5">
-                <div className="flex items-start gap-3">
-                  <Lightbulb className="h-5 w-5 text-accent-warm flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground">
-                      Match voices to your story&apos;s tone and preview them before narrating to ensure they match your story&apos;s mood and style.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Voice Cards - ElevenLabs Style */}
             {loading ? (
@@ -292,7 +282,7 @@ export default function VoicesPage() {
               </div>
             ) : error ? (
               <div className="text-center py-12">
-                <p className="text-red-600 mb-4">{error}</p>
+                <p className="text-destructive mb-4">{error}</p>
                 <Button onClick={() => window.location.reload()}>
                   Try Again
                 </Button>
@@ -306,30 +296,36 @@ export default function VoicesPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
                 {voices.map((voice) => {
-                  const borderGradient = getVoiceBorderGradient(voice.name)
-                  const tagString = voice.tags?.join(" • ") || ""
-                  
+                  const tagString = voice.tags?.join(" · ") || ""
+
                   return (
                     <div
                       key={voice.id}
                       id={`voice-${voice.id}`}
-                      className={cn(
-                        "relative rounded-2xl transition-all hover:shadow-lg flex flex-col p-[1px]",
-                        `bg-gradient-to-r ${borderGradient}`
-                      )}
+                      className="flex flex-col rounded-2xl"
                     >
-                      <Card 
-                        className="glass-card relative overflow-hidden rounded-2xl border-0 h-full flex-1 flex flex-col"
+                      <Card
+                        className="glass-card card-interactive relative overflow-hidden rounded-2xl h-full flex-1 flex flex-col py-0"
                       >
-                        <CardContent className="p-3 sm:p-4 md:p-5 flex flex-col h-full flex-1">
-                          {/* Header with Title and Checkmark */}
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-2 min-w-0 flex-1">
-                              <h3 className="text-lg sm:text-xl font-bold text-foreground truncate">
-                                {voice.name}
-                              </h3>
-                              <div className="h-4 w-4 rounded-full flex items-center justify-center bg-foreground/10 flex-shrink-0">
-                                <CheckCircle2 className="h-2.5 w-2.5 text-foreground/70" />
+                        <CardContent className="p-5 flex flex-col h-full flex-1">
+                          <div className="flex items-start justify-between gap-3 mb-3">
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <span
+                                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent font-serif text-lg"
+                                aria-hidden="true"
+                              >
+                                {voice.name.charAt(0)}
+                              </span>
+                              <div className="min-w-0">
+                                <h2 className="truncate font-sans text-base font-semibold tracking-normal">
+                                  {voice.name}
+                                </h2>
+                                {tagString && (
+                                  <p className="truncate text-xs text-muted-foreground">
+                                    {tagString}
+                                    {voice.is_cloned ? " · Cloned" : ""}
+                                  </p>
+                                )}
                               </div>
                             </div>
                             {voice.is_cloned && (
@@ -365,16 +361,9 @@ export default function VoicesPage() {
                           </div>
 
                           {/* Description */}
-                          <p className="text-sm sm:text-base mb-4 leading-relaxed text-muted-foreground line-clamp-3">
+                          <p className="text-sm mb-5 leading-relaxed text-muted-foreground line-clamp-3">
                             {voice.description}
                           </p>
-
-                          {/* Tags */}
-                          {tagString && (
-                            <p className="text-xs mb-4 text-muted-foreground/70">
-                              {tagString} • HQ
-                            </p>
-                          )}
 
                           {/* Language Preview with Dropdown and Waveform */}
                           <div className="mt-auto">
@@ -385,14 +374,6 @@ export default function VoicesPage() {
                           </div>
                         </CardContent>
                       </Card>
-                      
-                      {/* Bottom Tab with Gradient - Larger */}
-                      <div 
-                        className={cn(
-                          "h-3 rounded-b-2xl -mt-[1px]",
-                          `bg-gradient-to-r ${borderGradient}`
-                        )}
-                      />
                     </div>
                   )
                 })}

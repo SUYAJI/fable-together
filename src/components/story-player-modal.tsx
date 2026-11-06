@@ -168,7 +168,7 @@ export function StoryPlayerModal({ story, narration, open, onOpenChange }: Story
               <h3 className="text-lg font-semibold">Story Text</h3>
               <div ref={textRef} className="max-h-64 overflow-y-auto rounded-lg bg-muted/30 p-4 text-base leading-relaxed" aria-label="Story text">
                 {playerText.split(" ").map((word, index) => (
-                  <span key={`${word}-${index}`} className={`word inline-block mr-1 transition-colors ${index === highlightedWord ? "bg-yellow-200 dark:bg-yellow-800 font-semibold rounded px-1" : ""}`}>{word}</span>
+                  <span key={`${word}-${index}`} className={`word inline-block mr-1 transition-colors ${index === highlightedWord ? "bg-lantern/25 rounded px-1" : ""}`}>{word}</span>
                 ))}
               </div>
             </section>

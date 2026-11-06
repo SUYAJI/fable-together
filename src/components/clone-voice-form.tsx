@@ -1404,9 +1404,9 @@ export function CloneVoiceForm() {
                           </p>
                         </div>
                       </div>
-                      <Alert className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-                        <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                        <AlertDescription className="text-sm text-blue-900 dark:text-blue-100">
+                      <Alert className="bg-muted/60">
+                        <Info className="h-4 w-4 text-lantern" />
+                        <AlertDescription className="text-sm text-foreground">
                           <strong>Tip:</strong> Only enable background noise removal if you hear background noise, traffic, or other unwanted sounds in your recording. For clean, quiet recordings, leave this disabled to preserve the best voice quality.
                         </AlertDescription>
                       </Alert>

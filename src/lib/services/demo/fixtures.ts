@@ -54,15 +54,50 @@ export const DEMO_QUESTS = [
 ]
 
 export const DEMO_VOICES = [
-  { id: "demo-voice-warm", name: "Warm Storyteller", gender: "Female", tags: ["Family", "Narrator"] },
-  { id: "demo-voice-gentle", name: "Gentle Guide", gender: "Male", tags: ["Educator", "Narrator"] },
-  { id: "demo-voice-bright", name: "Bright Adventurer", gender: "Female", tags: ["Narrator"] },
-  { id: "demo-voice-calm", name: "Calm Companion", gender: "Male", tags: ["Family"] },
-  { id: "demo-voice-wise", name: "Wise Storykeeper", gender: "Female", tags: ["Educator"] },
-  { id: "demo-voice-playful", name: "Playful Narrator", gender: "Male", tags: ["Narrator"] },
+  {
+    id: "demo-voice-warm",
+    name: "Warm Storyteller",
+    gender: "Female",
+    tags: ["Family", "Narrator"],
+    description: "Soft and unhurried, like a parent reading at the edge of the bed.",
+  },
+  {
+    id: "demo-voice-gentle",
+    name: "Gentle Guide",
+    gender: "Male",
+    tags: ["Educator", "Narrator"],
+    description: "Clear and patient. Good for early readers following along on the page.",
+  },
+  {
+    id: "demo-voice-bright",
+    name: "Bright Adventurer",
+    gender: "Female",
+    tags: ["Narrator"],
+    description: "Quick and lively, for chases, quests and stories with a lot of motion.",
+  },
+  {
+    id: "demo-voice-calm",
+    name: "Calm Companion",
+    gender: "Male",
+    tags: ["Family"],
+    description: "Low and steady. The voice for winding down at the end of the night.",
+  },
+  {
+    id: "demo-voice-wise",
+    name: "Wise Storykeeper",
+    gender: "Female",
+    tags: ["Educator"],
+    description: "Measured and warm, like a grandparent telling a story they know by heart.",
+  },
+  {
+    id: "demo-voice-playful",
+    name: "Playful Narrator",
+    gender: "Male",
+    tags: ["Narrator"],
+    description: "Animated and expressive, with room for silly voices and sound effects.",
+  },
 ].map((voice) => ({
   ...voice,
-  description: `${voice.name} is a sample narrator for stories in this interactive demo.`,
   category: "Demo",
   accent: "Neutral",
   age: "Adult",

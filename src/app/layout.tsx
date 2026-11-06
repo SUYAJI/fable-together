@@ -1,6 +1,8 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import localFont from "next/font/local"
+import { GeistSans } from "geist/font/sans"
+import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -10,18 +12,16 @@ import { Toaster } from "@/components/ui/toaster"
 import { isDemoMode } from "@/lib/app-mode"
 import "../styles/globals.css"
 
-const geistSans = Geist({
-  subsets: ["latin"],
-  variable: "--font-geist-sans",
+// Fonts are self-hosted so the build does not depend on Google Fonts.
+// Geist ships with the geist package (variables --font-geist-sans / --font-geist-mono).
+// Newsreader is the storybook serif for titles and story text (SIL OFL, src/fonts).
+const newsreader = localFont({
+  src: [
+    { path: "../fonts/newsreader-latin-opsz-normal.woff2", style: "normal", weight: "200 800" },
+    { path: "../fonts/newsreader-latin-opsz-italic.woff2", style: "italic", weight: "200 800" },
+  ],
+  variable: "--font-newsreader",
   display: "swap",
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-})
-
-const geistMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-geist-mono",
-  display: "swap",
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 })
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -100,15 +100,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-        <meta name="theme-color" content="#f97316" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)" />
+        <meta name="theme-color" content="#f4f6fa" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#121a2b" media="(prefers-color-scheme: dark)" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        style={{
-          fontFamily:
-            'var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-        }}
+        className={`${GeistSans.variable} ${GeistMono.variable} ${newsreader.variable} font-sans antialiased`}
       >
         <a
           href="#main-content"
@@ -118,7 +114,7 @@ export default function RootLayout({
         </a>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange={false}
           storageKey="theme"

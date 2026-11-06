@@ -8,9 +8,9 @@ import { useRouter } from "next/navigation"
 import { AppSidebar } from "@/components/app-sidebar"
 import { AppHeader } from "@/components/app-header"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Play, Share2, Users, Mic, BookOpen, Star, ShoppingCart } from "lucide-react"
+import { BookOpen, Headphones, Languages, MessageSquare, Mic } from "lucide-react"
+import { StoryCard } from "@/components/story-card"
+import { DEMO_STORIES as stories } from "@/lib/services/demo/story-repository"
 import { getClientServices } from "@/lib/services/client"
 import { DashboardContentWrapper } from "@/components/dashboard-content-wrapper"
 import { DashboardNavigationProgress } from "@/components/dashboard-navigation-progress"
@@ -29,107 +29,27 @@ interface UserProfile {
   first_name?: string
 }
 
-const exampleStories = [
-  {
-    id: 1,
-    title: "The Adventure Begins",
-    category: "Adventure",
-    duration: "10 min",
-    rating: 4.6,
-    thumbnail: "/adventure-story-illustration.jpg",
-    isExample: true,
-    isPurchased: true,
-    likes: 89,
-    plays: "2.3K",
-    summary: "A brave little rabbit named Luna overcomes her fears to embark on a magical adventure in the forest, discovering that the greatest journeys begin with a single step.",
-    creators: [
-      {
-        id: "sarah-j",
-        name: "Sarah Johnson",
-        role: "Author" as const,
-        avatar: "/emily-avatar.jpg",
-        bio: "Award-winning children's author with 15+ published stories",
-      },
-    ],
-  },
-  {
-    id: 2,
-    title: "The Mystery Unfolds",
-    category: "Mystery",
-    duration: "12 min",
-    rating: 4.8,
-    thumbnail: "/mystery-story-illustration.jpg",
-    isExample: true,
-    isPurchased: true,
-    likes: 67,
-    plays: "1.8K",
-    summary: "Detective Maya investigates strange lights at an old lighthouse, uncovering hidden secrets and learning that the greatest mysteries are about preserving history.",
-    creators: [
-      {
-        id: "alex-c",
-        name: "Alex Chen",
-        role: "Author" as const,
-        avatar: "/uncle-lou-avatar.jpg",
-        bio: "Mystery writer with a passion for puzzles and adventure",
-      },
-    ],
-  },
-  {
-    id: 3,
-    title: "The Enchanted Forest",
-    category: "Fantasy",
-    duration: "15 min",
-    rating: 4.9,
-    thumbnail: "/enchanted-forest-story.jpg",
-    isExample: true,
-    isPurchased: true,
-    likes: 124,
-    plays: "3.1K",
-    summary: "A young fairy named Zara embarks on a quest to save the Enchanted Forest, discovering that true magic comes from love and care for nature.",
-    creators: [
-      {
-        id: "luna-m",
-        name: "Luna Martinez",
-        role: "Author" as const,
-        avatar: "/dr-anna-avatar.jpg",
-        bio: "Fantasy author who believes in the magic of nature",
-      },
-    ],
-  },
-]
+// Featured on the dashboard as tonight's story
+const FEATURED_STORY_ID = 3
 
-const communityCircles = [
+const steps = [
   {
-    name: "Indigenous Stories Circle",
-    members: "1.2K members",
-    color: "bg-orange-500",
+    title: "Pick a story",
+    description: "Illustrated stories to read on the page or hear aloud.",
+    href: "/stories",
+    icon: BookOpen,
   },
   {
-    name: "Family Traditions",
-    members: "856 members",
-    color: "bg-green-500",
+    title: "Choose a voice",
+    description: "A narrator from the library, or a family voice you clone.",
+    href: "/voices",
+    icon: Mic,
   },
   {
-    name: "Multilingual Tales",
-    members: "2.1K members",
-    color: "bg-blue-500",
-  },
-]
-
-const familyActivity = [
-  {
-    name: "Emma",
-    action: 'loved "Space Adventure"',
-    time: "2 hours ago",
-    avatar: "E",
-    color: "bg-pink-500",
-  },
-  {
-    name: "Mike",
-    action: "added new voice",
-    time: "5 hours ago",
-    avatar: "M",
-    color: "bg-blue-500",
+    title: "Listen in five languages",
+    description: "English, Spanish, French, Chinese and Hindi, at any speed.",
+    href: `/stories?story=${FEATURED_STORY_ID}`,
+    icon: Languages,
   },
 ]
 
@@ -326,7 +246,7 @@ export default function DashboardPage() {
         <AppSidebar />
         <div className="flex flex-1 flex-col overflow-hidden">
           <AppHeader />
-          <main className="flex-1 overflow-y-auto">
+          <main className="flex-1 overflow-y-auto bg-background">
             <div className="mx-auto max-w-7xl p-6">
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
@@ -341,278 +261,161 @@ export default function DashboardPage() {
     )
   }
 
+  const featuredStory = stories.find((story) => story.id === FEATURED_STORY_ID) ?? stories[0]
+  const firstName = user?.first_name || user?.display_name?.split(" ")[0]
+
   return (
     <div className="flex h-screen">
       <AppSidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <AppHeader user={user} />
         <NewsTicker />
-        <main id="main-content" className="flex-1 overflow-y-auto relative dark:bg-[#1a1a1a]" role="main" tabIndex={-1}>
+        <main id="main-content" className="flex-1 overflow-y-auto relative bg-background" role="main" tabIndex={-1}>
           <DashboardNavigationProgress />
           <DashboardContentWrapper>
-            <div className="mx-auto max-w-full px-4 sm:max-w-4xl sm:px-6 lg:max-w-6xl lg:px-8 xl:max-w-7xl pt-6 sm:pt-8 md:pt-10 pb-8 sm:pb-12 md:pb-16">
-            {/* Header Section */}
-            <div className="mb-12 sm:mb-16">
-              <div className="text-sm uppercase tracking-wide text-muted-foreground mb-4">
-                Dashboard
-              </div>
-              <div className="flex items-center gap-3 mb-4">
-                <h1 className="text-4xl sm:text-5xl font-bold">
-                  Welcome, {user?.first_name || user?.display_name?.split(' ')[0] || 'User'}!
-                </h1>
-                <Badge className="bg-orange-500/90 text-white border-orange-400 font-semibold text-xs sm:text-sm px-2 sm:px-3 py-0.5 sm:py-1" aria-label={isDemoMode() ? "Interactive demo" : "Beta version"}>
-                  {isDemoMode() ? "INTERACTIVE DEMO" : "BETA"}
-                </Badge>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <p className="text-lg text-muted-foreground max-w-3xl">
-                  {isDemoMode()
-                    ? "Explore stories, narration voices, translations, and the family activity that shaped the original Fable Together experience."
-                    : "Fable Together is currently in beta. We&apos;re actively working on improving features and adding new functionality."}
+            <div className="mx-auto max-w-full px-4 sm:max-w-4xl sm:px-6 lg:max-w-6xl lg:px-8 pt-6 sm:pt-8 md:pt-10 pb-12 sm:pb-16">
+              {/* Greeting */}
+              <header className="mb-6 sm:mb-8">
+                <p className="eyebrow mb-3">
+                  {isDemoMode() ? "Interactive demo" : firstName ? `Welcome back, ${firstName}` : "Welcome back"}
                 </p>
-                <Button 
-                  size="lg" 
-                  variant="secondary" 
-                  className="gap-2 text-sm sm:text-base w-fit"
-                  onClick={() => setFeedbackModalOpen(true)}
-                >
-                  <Star className="h-4 w-4 sm:h-5 sm:w-5" />
-                  Provide Feedback
-                </Button>
-              </div>
-            </div>
+                <h1 className="text-4xl sm:text-5xl">What shall we read tonight?</h1>
+              </header>
 
-            <div className="grid grid-cols-1 gap-4 sm:gap-6">
-              {/* Main Content */}
-              <div className="space-y-4 sm:space-y-6">
-                {/* Quests Section */}
-                <div className="mb-6">
-                  <div className="mb-4">
-                    <h2 className="text-xl font-semibold mb-2">Quests</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Complete quests automatically as you use the platform to earn tokens
+              {/* Tonight's story */}
+              <section aria-labelledby="featured-heading" className="night-band mb-10 overflow-hidden rounded-3xl sm:mb-14">
+                <div className="grid md:grid-cols-[1.1fr_1fr]">
+                  <div className="relative aspect-[4/3] md:aspect-auto md:min-h-[360px]">
+                    <Image
+                      src={featuredStory.thumbnail}
+                      alt={`Illustration for ${featuredStory.title}`}
+                      fill
+                      priority
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 55vw"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-center gap-4 p-6 sm:p-8 lg:p-10">
+                    <p className="text-xs font-medium uppercase tracking-[0.14em] text-white/60">
+                      Tonight&apos;s story · {featuredStory.category} · {featuredStory.duration}
+                    </p>
+                    <h2 id="featured-heading" className="text-3xl sm:text-4xl text-white">
+                      {featuredStory.title}
+                    </h2>
+                    <p className="text-base leading-relaxed text-white/75">{featuredStory.summary}</p>
+                    <p className="text-sm text-white/55">
+                      by {featuredStory.creators.map((creator) => creator.name).join(", ")}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-3">
+                      <Button
+                        size="lg"
+                        className="gap-2 bg-[var(--moon)] text-[var(--night)] hover:bg-white"
+                        onClick={() => router.push(`/stories?story=${featuredStory.id}`)}
+                      >
+                        <Headphones className="h-4 w-4" aria-hidden="true" />
+                        Listen now
+                      </Button>
+                      <Button
+                        asChild
+                        size="lg"
+                        variant="ghost"
+                        className="text-white hover:bg-white/10 hover:text-white"
+                      >
+                        <Link href="/stories">Browse the library</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* How it works */}
+              <section aria-labelledby="steps-heading" className="mb-12 sm:mb-16">
+                <h2 id="steps-heading" className="sr-only">How Fable Together works</h2>
+                <ol className="grid gap-3 sm:grid-cols-3 sm:gap-4">
+                  {steps.map((step, index) => (
+                    <li key={step.title}>
+                      <Link
+                        href={step.href}
+                        className="card-interactive flex h-full items-start gap-4 rounded-2xl border bg-card p-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <span className="step-number mt-0.5">{index + 1}</span>
+                        <span className="flex-1">
+                          <span className="flex items-center gap-2 font-medium">
+                            <step.icon className="h-4 w-4 text-lantern" aria-hidden="true" />
+                            {step.title}
+                          </span>
+                          <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
+                            {step.description}
+                          </span>
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+
+              {/* Library */}
+              <section aria-labelledby="library-heading" className="mb-14 sm:mb-20">
+                <div className="mb-5 flex items-end justify-between gap-4">
+                  <div>
+                    <p className="eyebrow mb-2">Library</p>
+                    <h2 id="library-heading" className="text-3xl">Stories</h2>
+                  </div>
+                  <Button asChild variant="outline">
+                    <Link href="/stories">View all</Link>
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+                  {stories.map((story) => (
+                    <StoryCard
+                      key={story.id}
+                      story={story}
+                      languageCount={Object.keys(story.translations).length}
+                      onOpen={() => router.push(`/stories?story=${story.id}`)}
+                      onShare={(event) => handleShareStory(story.title, story.id, event)}
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {/* Progress: stats and quests */}
+              <section aria-labelledby="progress-heading">
+                <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="eyebrow mb-2">Your progress</p>
+                    <h2 id="progress-heading" className="text-3xl">Quests</h2>
+                    <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+                      Quests complete on their own as you listen and try voices. Each one adds credits for narration.
                     </p>
                   </div>
-                  <DashboardQuests />
+                  <Button variant="ghost" className="w-fit gap-2 text-muted-foreground" onClick={() => setFeedbackModalOpen(true)}>
+                    <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                    Share feedback
+                  </Button>
                 </div>
 
-                {/* Stats */}
-                <section aria-label="Dashboard statistics">
-                  <h2 className="sr-only">Dashboard Statistics</h2>
-                  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-                  <Card className="glass-card group transition-all duration-200 hover:ring-2 hover:ring-border hover:ring-offset-2">
-                    <CardContent className="p-6">
-                      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
-                        <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div className="text-3xl font-bold">
-                        {isDemoMode() ? storiesCount : <AnimatedCounter value={storiesCount} />}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Stories in library</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="glass-card group transition-all duration-200 hover:ring-2 hover:ring-border hover:ring-offset-2">
-                    <CardContent className="p-4 sm:p-5 md:p-6">
-                      <div className="mb-2 sm:mb-3 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30">
-                        <Mic className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
-                      </div>
-                      <div className="text-2xl sm:text-3xl font-bold">
-                        {isDemoMode() ? voicesCount : <AnimatedCounter value={voicesCount} />}
-                      </div>
-                      <div className="text-xs sm:text-sm text-muted-foreground">Voices in library</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="glass-card group transition-all duration-200 hover:ring-2 hover:ring-border hover:ring-offset-2">
-                    <CardContent className="p-4 sm:p-5 md:p-6">
-                      <div className="mb-2 sm:mb-3 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                        <Star className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 dark:text-green-400" />
-                      </div>
-                      <div className="text-2xl sm:text-3xl font-bold">
-                        {isDemoMode() ? creditsRemaining : <AnimatedCounter value={creditsRemaining} />}
-                      </div>
-                      <div className="text-xs sm:text-sm text-muted-foreground">Credits available</div>
-                    </CardContent>
-                  </Card>
-                  </div>
-                </section>
-
-                {/* Current Stories */}
-                <section aria-label="Current stories">
-                <div>
-                  <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-2xl font-bold">Current Stories</h2>
-                    <div className="flex items-center gap-2">
-                      <Link href="/stories">
-                        <Button variant="outline" className="btn-ghost">View All</Button>
-                      </Link>
+                <dl className="mb-6 grid grid-cols-3 divide-x rounded-2xl border bg-card">
+                  {[
+                    { label: "Stories", value: storiesCount },
+                    { label: "Voices", value: voicesCount },
+                    { label: "Credits", value: creditsRemaining },
+                  ].map((stat) => (
+                    <div key={stat.label} className="px-4 py-4 sm:px-6">
+                      <dt className="text-xs text-muted-foreground sm:text-sm">{stat.label}</dt>
+                      <dd className="mt-1 font-serif text-2xl sm:text-3xl">
+                        {isDemoMode() ? stat.value : <AnimatedCounter value={stat.value} />}
+                      </dd>
                     </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
-                      {exampleStories.map((story) => (
-                        <div
-                          key={story.id}
-                          className="relative rounded-2xl transition-all hover:shadow-lg flex flex-col border border-border/50 p-[1px]"
-                        >
-                          <Card 
-                            className="glass-card card-story overflow-hidden group animate-fade-in cursor-pointer border-0 h-full flex-1 flex flex-col p-0" 
-                            onClick={() => router.push(`/stories?story=${story.id}`)}
-                          >
-                            <div className="story-thumbnail relative bg-warm-gradient overflow-hidden h-64">
-                              <Image 
-                                src={story.thumbnail} 
-                                alt={`${story.title} story cover image`} 
-                                fill
-                                className="object-cover"
-                                priority
-                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                              />
-                            </div>
-                            <CardContent className="p-5 sm:p-6 md:p-8 flex flex-col flex-1">
-                              <div className="mb-4 sm:mb-6 flex-1">
-                                <h3 className="font-bold text-xl sm:text-2xl md:text-3xl mb-3 sm:mb-4 leading-tight">{story.title}</h3>
-                                {story.summary && (
-                                  <p className="text-base sm:text-lg text-muted-foreground mb-3 sm:mb-4 leading-relaxed">{story.summary}</p>
-                                )}
-                                <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
-                                  by {story.creators.map(c => c.name).join(", ")}
-                                </p>
-                              </div>
-                              <div className="flex items-center justify-between pt-4 border-t">
-                                <button 
-                                  className="flex items-center gap-2 text-sm sm:text-base text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded px-3 py-2"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleShareStory(story.title, story.id, e)
-                                  }}
-                                  aria-label={`Share ${story.title}`}
-                                >
-                                  <Share2 className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
-                                  <span>Share story</span>
-                                </button>
-                                {story.isPurchased ? (
-                                  <Button size="lg" className="btn-primary gap-2 h-11 sm:h-12 px-6 sm:px-8 text-base sm:text-lg">
-                                    <Play className="h-4 w-4 sm:h-5 sm:w-5" />
-                                    Open
-                                  </Button>
-                                ) : (
-                                  <Button size="lg" variant="outline" className="btn-ghost gap-2 h-11 sm:h-12 px-6 sm:px-8 text-base sm:text-lg">
-                                    <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
-                                    Purchase
-                                  </Button>
-                                )}
-                              </div>
-                            </CardContent>
-                          </Card>
-                          
-                          {/* Bottom Tab - Larger */}
-                          <div className="h-3 rounded-b-2xl -mt-[1px] bg-border/50" />
-                        </div>
-                      ))}
-                    </div>
-                </div>
-                </section>
-              </div>
+                  ))}
+                </dl>
 
-              {/* Sidebar - Hidden for now */}
-              {false && (
-                <div className="space-y-4 sm:space-y-6">
-                  {/* Community Circles */}
-                  <Link href="/community">
-                    <Card className="glass-card group transition-all duration-200 hover:ring-2 hover:ring-border hover:ring-offset-2 cursor-pointer">
-                      <CardContent className="p-6">
-                        <div className="mb-4 flex items-center gap-2">
-                          <Users className="h-5 w-5 text-primary" />
-                          <h3 className="font-semibold">Community Circles</h3>
-                        </div>
-                        <div className="space-y-3">
-                          {communityCircles.map((circle, index) => (
-                            <div key={index} className="flex items-center gap-3">
-                              <div className={`flex h-12 w-12 items-center justify-center rounded-full ${circle.color}`}>
-                                <Users className="h-6 w-6 text-white" />
-                              </div>
-                              <div className="flex-1">
-                                <div className="font-medium text-sm">{circle.name}</div>
-                                <div className="text-xs text-muted-foreground">{circle.members}</div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-
-                  {/* Quick Start */}
-                  <Card>
-                    <CardContent className="p-6">
-                      <h3 className="mb-4 font-semibold">Quick Start</h3>
-                      <div className="space-y-2">
-                        <Link href="/stories">
-                          <Button className="w-full justify-start gap-2 bg-gradient-to-r from-purple-600 to-pink-600">
-                            <Play className="h-4 w-4" />
-                            Create New Story
-                          </Button>
-                        </Link>
-                        <Link href="/voices/clone">
-                          <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
-                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                              />
-                            </svg>
-                            Record Voice
-                          </Button>
-                        </Link>
-                        <Link href="/community">
-                          <Button variant="outline" className="w-full justify-start gap-2 bg-transparent">
-                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                              />
-                            </svg>
-                            Join Discussion
-                          </Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Family Activity */}
-                  <Card>
-                    <CardContent className="p-6">
-                      <h3 className="mb-4 font-semibold">Family Activity</h3>
-                      <div className="space-y-4">
-                        {familyActivity.map((activity, index) => (
-                          <div key={index} className="flex items-start gap-3">
-                            <div
-                              className={`flex h-10 w-10 items-center justify-center rounded-full ${activity.color} text-white font-semibold`}
-                            >
-                              {activity.avatar}
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-sm">
-                                <span className="font-medium">{activity.name}</span> {activity.action}
-                              </p>
-                              <p className="text-xs text-muted-foreground">{activity.time}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
+                <DashboardQuests />
+              </section>
             </div>
-            </div>
-            </DashboardContentWrapper>
+          </DashboardContentWrapper>
         </main>
         <DashboardTutorial />
-        <FeedbackModal 
+        <FeedbackModal
           open={feedbackModalOpen}
           onOpenChange={setFeedbackModalOpen}
         />

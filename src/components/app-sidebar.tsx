@@ -2,16 +2,17 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, BookOpen, Mic, Settings, Menu, Users, Trophy, Share2, HelpCircle, ChevronLeft, ChevronRight } from "lucide-react"
+import { Home, BookOpen, Mic, Settings, Menu, AudioLines, Trophy, Share2, HelpCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { FableMark } from "@/components/fable-mark"
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { InviteFriendsModal } from "@/components/invite-friends-modal"
-import { useEffect, useState } from "react"
+import { Fragment, useEffect, useState } from "react"
 import { isDemoMode } from "@/lib/app-mode"
 import { getDemoCounts, getDemoState, setDemoSidebarCollapsed, subscribeDemoState } from "@/lib/services/demo/state"
 
@@ -19,7 +20,7 @@ const navigation = [
   { name: "Home", href: "/dashboard", icon: Home },
   { name: "Story Library", href: "/stories", icon: BookOpen },
   { name: "Voice Library", href: "/voices", icon: Mic },
-  { name: "Clone a Voice", href: "/voices/clone", icon: Users },
+  { name: "Clone a Voice", href: "/voices/clone", icon: AudioLines },
   { name: "Quests", href: "/quests", icon: Trophy },
   { name: "FAQ", href: "/creator", icon: HelpCircle },
   { name: "Settings", href: "/settings", icon: Settings },
@@ -123,47 +124,36 @@ function SidebarContent({ isCollapsed = false }: { isCollapsed?: boolean }) {
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className={cn(
-        "flex items-center border-b h-20 transition-all",
+        "flex items-center border-b h-16 transition-all",
         isCollapsed ? "justify-center px-2 flex-col gap-1" : "px-6"
       )}>
         <div className={cn(
           "flex items-center gap-2",
           isCollapsed && "flex-col gap-1"
         )}>
-          <Link 
+          <Link
             href="/dashboard"
-            className={cn(
-              "font-semibold text-primary hover:opacity-80 transition-opacity",
-              isCollapsed ? "text-xs leading-tight text-center" : "text-2xl"
-            )}
+            className="text-foreground transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
             aria-label="Fable Together - Home"
           >
-            {isCollapsed ? (
-              <span className="block">
-                <span className="block">Fable</span>
-                <span className="block">Together</span>
-              </span>
-            ) : (
-              "Fable Together"
-            )}
+            <FableMark compact={isCollapsed} />
           </Link>
-          <Badge 
-            variant="outline" 
-            className={cn(
-              "bg-orange-500/10 text-orange-600 border-orange-500/50 dark:bg-orange-500/20 dark:text-orange-400 dark:border-orange-500/50 font-semibold",
-              isCollapsed ? "text-[8px] px-1 py-0 h-4 leading-none" : ""
-            )}
-          >
-            {isDemoMode() ? "DEMO" : "BETA"}
-          </Badge>
+          {!isCollapsed && (
+            <Badge
+              variant="outline"
+              className="border-lantern/40 bg-lantern-soft text-[10px] font-medium uppercase tracking-[0.12em] text-foreground/80"
+            >
+              {isDemoMode() ? "Demo" : "Beta"}
+            </Badge>
+          )}
         </div>
       </div>
 
       {/* Navigation */}
       <nav 
         className={cn(
-          "flex-1 space-y-3 transition-all",
-          isCollapsed ? "p-3" : "p-6"
+          "flex-1 space-y-1 transition-all",
+          isCollapsed ? "p-3" : "px-4 py-6"
         )}
         aria-label="Main navigation"
       >
@@ -180,7 +170,7 @@ function SidebarContent({ isCollapsed = false }: { isCollapsed?: boolean }) {
                 href={item.href}
                 className={cn(
                   "sidebar-item flex items-center rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                  isCollapsed ? "justify-center py-3 px-2" : "gap-4 text-base font-medium py-3 px-4",
+                  isCollapsed ? "justify-center py-3 px-2" : "gap-3 text-[0.95rem] font-medium py-2.5 px-3",
                   isActive ? "sidebar-item-active" : "text-muted-foreground hover:text-foreground",
                 )}
                 aria-current={isActive ? "page" : undefined}
@@ -189,7 +179,7 @@ function SidebarContent({ isCollapsed = false }: { isCollapsed?: boolean }) {
                 <item.icon 
                   className={cn(
                     "icon-accent flex-shrink-0",
-                    isCollapsed ? "h-5 w-5" : "h-6 w-6"
+                    isCollapsed ? "h-5 w-5" : "h-[18px] w-[18px]"
                   )}
                   aria-hidden="true"
                 />
@@ -205,33 +195,39 @@ function SidebarContent({ isCollapsed = false }: { isCollapsed?: boolean }) {
                         {count}
                       </Badge>
                     )}
-                    {isActive && (
-                      <div 
-                        className="ml-auto h-2 w-2 rounded-full bg-primary-foreground" 
-                        aria-hidden="true"
-                        aria-label="Current page indicator"
-                      />
-                    )}
                   </>
                 )}
               </Link>
             )
 
+            // Quests, FAQ and Settings sit below a divider so the story/voice loop reads first
+            const divider = item.name === "Quests" ? (
+              <div className="my-3 border-t" role="separator" aria-hidden="true" />
+            ) : null
+
             if (isCollapsed) {
               return (
-                <Tooltip key={item.name}>
-                  <TooltipTrigger asChild>
-                    {linkContent}
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p>{item.name}</p>
-                    {showCount && <p className="text-xs opacity-75">{count} items</p>}
-                  </TooltipContent>
-                </Tooltip>
+                <Fragment key={item.name}>
+                  {divider}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      {linkContent}
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>{item.name}</p>
+                      {showCount && <p className="text-xs opacity-75">{count} items</p>}
+                    </TooltipContent>
+                  </Tooltip>
+                </Fragment>
               )
             }
 
-            return linkContent
+            return (
+              <Fragment key={item.name}>
+                {divider}
+                {linkContent}
+              </Fragment>
+            )
           })}
         </TooltipProvider>
       </nav>
@@ -367,7 +363,7 @@ export function AppSidebar() {
       {/* Sidebar with slide animation */}
       <aside 
         className={cn(
-          "flex h-screen flex-col border-r bg-card transition-all duration-300 ease-in-out relative z-10",
+          "flex h-screen flex-col border-r bg-sidebar transition-all duration-300 ease-in-out relative z-10",
       isCollapsed ? "w-16" : "w-64"
         )}
         style={{
@@ -378,7 +374,7 @@ export function AppSidebar() {
       
         {/* Toggle Button - Standard Design */}
       <div className={cn(
-          "absolute top-20 transition-all duration-300 ease-in-out z-20",
+          "absolute top-16 transition-all duration-300 ease-in-out z-20",
           isCollapsed ? "right-0 translate-x-1/2" : "right-0 translate-x-1/2"
       )}>
         <Button

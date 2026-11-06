@@ -114,7 +114,7 @@ export default function FAQPage() {
         <AppHeader />
         <main
           id="main-content"
-          className="flex-1 overflow-y-auto dark:bg-[#1a1a1a]"
+          className="flex-1 overflow-y-auto bg-background"
           role="main"
           tabIndex={-1}
         >
