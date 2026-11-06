@@ -125,7 +125,7 @@ function SidebarContent({ isCollapsed = false }: { isCollapsed?: boolean }) {
       {/* Logo */}
       <div className={cn(
         "flex items-center border-b h-16 transition-all",
-        isCollapsed ? "justify-center px-2 flex-col gap-1" : "px-6"
+        isCollapsed ? "justify-center px-2 flex-col gap-1" : "px-5"
       )}>
         <div className={cn(
           "flex items-center gap-2",
@@ -138,14 +138,6 @@ function SidebarContent({ isCollapsed = false }: { isCollapsed?: boolean }) {
           >
             <FableMark compact={isCollapsed} />
           </Link>
-          {!isCollapsed && (
-            <Badge
-              variant="outline"
-              className="border-lantern/40 bg-lantern-soft text-[10px] font-medium uppercase tracking-[0.12em] text-foreground/80"
-            >
-              {isDemoMode() ? "Demo" : "Beta"}
-            </Badge>
-          )}
         </div>
       </div>
 

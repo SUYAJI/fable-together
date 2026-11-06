@@ -24,7 +24,7 @@ export function FableMark({ className, compact = false }: FableMarkProps) {
     <span className={cn("inline-flex items-center gap-2", className)}>
       <FableMoon className="text-lantern" />
       {!compact && (
-        <span className="font-serif text-[1.35rem] font-medium leading-none tracking-[-0.01em]">
+        <span className="whitespace-nowrap font-serif text-[1.35rem] font-medium leading-none tracking-[-0.01em]">
           Fable Together
         </span>
       )}

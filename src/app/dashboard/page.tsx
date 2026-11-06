@@ -284,7 +284,7 @@ export default function DashboardPage() {
 
               {/* Tonight's story */}
               <section aria-labelledby="featured-heading" className="night-band mb-10 overflow-hidden rounded-3xl sm:mb-14">
-                <div className="grid md:grid-cols-[1.1fr_1fr]">
+                <div className="grid grid-cols-1 md:grid-cols-[1.1fr_1fr]">
                   <div className="relative aspect-[4/3] md:aspect-auto md:min-h-[360px]">
                     <Image
                       src={featuredStory.thumbnail}

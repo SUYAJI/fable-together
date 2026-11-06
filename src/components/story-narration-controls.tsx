@@ -847,7 +847,7 @@ export function StoryNarrationControls({
         onOpenChange={setIsPlayerOpen}
       />
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-10">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-10">
         {/* Reading page */}
         <section aria-labelledby="story-text-heading" className="order-2 lg:order-1">
           <div className="mb-4 flex items-baseline justify-between gap-4">
@@ -967,7 +967,7 @@ export function StoryNarrationControls({
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-medium">{voice.name}</span>
                           <span className="block truncate text-xs text-muted-foreground">
-                            {voice.tags?.length ? `${voice.tags.join(" · ")} · ${voiceType}` : voiceType}
+                            {voice.tags?.length ? `${voice.tags.join(" · ")}${voice.is_cloned ? " · Cloned" : ""}` : voiceType}
                           </span>
                         </span>
                         <button

@@ -138,14 +138,15 @@ export function StoryPlayerModal({ story, narration, open, onOpenChange }: Story
 
           <section className="space-y-3" aria-label="Story player controls">
             <div>
-              <h3 className="text-lg font-semibold">Story Player</h3>
+              <p className="eyebrow mb-1">Now playing</p>
+              <h3 className="font-serif text-2xl font-medium">{story.title}</h3>
               {narration && <p className="text-sm text-muted-foreground">{narration.voiceName} · {narration.speed.toFixed(2)}x</p>}
             </div>
 
             {isAudioNarration ? (
               <AudioPlayer src={narration.audioUrl!} audioRef={audioRef} />
             ) : narration?.playback === "browser-speech" ? (
-              <div className="space-y-3 rounded-xl bg-muted/30 p-4">
+              <div className="space-y-3 rounded-2xl border p-4">
                 <p className="text-sm font-medium">{narration.disclosure || "Browser narration preview"}</p>
                 <p className="text-sm text-muted-foreground">Uses a matching system voice for the selected language. Seeking is unavailable during browser playback.</p>
                 {browserUnavailable ? (
@@ -165,8 +166,7 @@ export function StoryPlayerModal({ story, narration, open, onOpenChange }: Story
 
           {playerText && (
             <section className="space-y-3">
-              <h3 className="text-lg font-semibold">Story Text</h3>
-              <div ref={textRef} className="max-h-64 overflow-y-auto rounded-lg bg-muted/30 p-4 text-base leading-relaxed" aria-label="Story text">
+                            <div ref={textRef} className="max-h-72 overflow-y-auto rounded-2xl border bg-card px-5 py-4 font-serif text-lg leading-relaxed" aria-label="Story text">
                 {playerText.split(" ").map((word, index) => (
                   <span key={`${word}-${index}`} className={`word inline-block mr-1 transition-colors ${index === highlightedWord ? "bg-lantern/25 rounded px-1" : ""}`}>{word}</span>
                 ))}

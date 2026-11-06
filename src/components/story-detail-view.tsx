@@ -56,7 +56,7 @@ export function StoryDetailView({ story, onBack }: StoryDetailViewProps) {
       </Button>
 
       {/* Story header */}
-      <header className="grid items-center gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:gap-10">
+      <header className="grid grid-cols-1 items-center gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:gap-10">
         <div className="story-thumbnail relative aspect-[4/3] overflow-hidden rounded-3xl">
           <Image
             src={story.thumbnail || "/placeholder.svg"}

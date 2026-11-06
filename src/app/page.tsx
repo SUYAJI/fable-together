@@ -8,6 +8,7 @@ import { ArrowRight, Headphones } from "lucide-react"
 import { AuthToggleForm } from "@/components/auth/auth-toggle-form"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { FableMark } from "@/components/fable-mark"
+import { CloudBank } from "@/components/cloud-bank"
 import { Button } from "@/components/ui/button"
 import { getClientServices } from "@/lib/services/client"
 import { isDemoMode } from "@/lib/app-mode"
@@ -76,6 +77,11 @@ export default function HomePage() {
             className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_25%_20%,transparent_0%,var(--night)_70%)]"
             aria-hidden="true"
           />
+          {/* Night theme: fade into the page instead of the cloud edge */}
+          <div
+            className="absolute inset-x-0 bottom-0 -z-10 hidden h-48 bg-[linear-gradient(to_bottom,transparent,var(--background))] dark:block"
+            aria-hidden="true"
+          />
 
           <header className="relative z-10" role="banner">
             <nav
@@ -135,12 +141,12 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-        <div className="cloud-bank" aria-hidden="true" />
+        <CloudBank className="dark:hidden" />
 
         <main id="main-content" className="flex-1" role="main" tabIndex={-1}>
           {/* Three ideas from the original site */}
           <div className="content-container space-y-24 px-6 py-16 sm:py-20 md:px-8">
-            <section className="grid items-center gap-10 md:grid-cols-2" aria-labelledby="keep-heading">
+            <section className="grid grid-cols-1 items-center gap-10 md:grid-cols-2" aria-labelledby="keep-heading">
               <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-night">
                 <Image
                   src="/enchanted-forest-story.jpg"
@@ -167,7 +173,7 @@ export default function HomePage() {
               </div>
             </section>
 
-            <section className="grid items-center gap-10 md:grid-cols-2" aria-labelledby="language-heading">
+            <section className="grid grid-cols-1 items-center gap-10 md:grid-cols-2" aria-labelledby="language-heading">
               <div className="md:order-2">
                 <div className="flex flex-wrap gap-3" aria-label="Narration languages">
                   {SUPPORTED_LANGUAGES.map((code) => {
@@ -196,7 +202,7 @@ export default function HomePage() {
               </div>
             </section>
 
-            <section className="grid items-center gap-10 md:grid-cols-2" aria-labelledby="voice-heading">
+            <section className="grid grid-cols-1 items-center gap-10 md:grid-cols-2" aria-labelledby="voice-heading">
               <div className="rounded-3xl border bg-card p-6 sm:p-8">
                 <ul className="space-y-3" aria-label="Example family voices">
                   {familyVoices.map((voice, index) => (
