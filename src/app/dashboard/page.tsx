@@ -41,7 +41,7 @@ const steps = [
   },
   {
     title: "Choose a voice",
-    description: "A narrator from the library, or a family voice you clone.",
+    description: "Choose a browser narrator or try the simulated family voice workflow.",
     href: "/voices",
     icon: Mic,
   },

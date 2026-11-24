@@ -111,7 +111,7 @@ export default function HomePage() {
                 Empower your children through <em className="italic text-[var(--moon)]">storytelling.</em>
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
-                Pick an illustrated story, choose who reads it, a narrator or a voice from your own family,
+                Pick an illustrated story, choose a browser narrator,
                 and listen together in English, Spanish, French, Chinese or Hindi.
               </p>
 
@@ -231,15 +231,14 @@ export default function HomePage() {
               <div>
                 <p className="eyebrow mb-3">Voices</p>
                 <h2 id="voice-heading" className="text-4xl sm:text-5xl">
-                  Clone your voice. Star in the story.
+                  Try a simulated family voice.
                 </h2>
                 <p className="mt-4 max-w-md text-lg leading-relaxed text-muted-foreground">
-                  Record a short sample and your voice joins the family voice library, ready to read any story,
-                  even when you are not in the room.
+                  Explore how a family voice would be added to the library. This demo simulates cloning and uses browser voices for narration.
                 </p>
                 {demoMode && (
                   <Button asChild variant="outline" className="mt-6">
-                    <Link href="/voices/clone">Try voice cloning</Link>
+                    <Link href="/voices/clone">Try the voice demo</Link>
                   </Button>
                 )}
               </div>
